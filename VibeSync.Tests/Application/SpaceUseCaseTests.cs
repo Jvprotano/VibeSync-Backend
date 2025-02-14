@@ -1,4 +1,3 @@
-using VibeSync.Application.Contracts.UseCases;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
@@ -10,12 +9,14 @@ namespace VibeSync.Tests.Application
 {
     public class SpaceUseCaseTests : DatabaseTestBase
     {
-        private readonly ISpaceUseCase _useCase;
+        private readonly CreateSpaceUseCase _createSpaceUseCase;
+        private readonly GetSpaceByIdUseCase _getSpaceByIdUseCase;
 
         public SpaceUseCaseTests()
         {
             var spaceRepository = new SpaceRepository(_context);
-            _useCase = new SpaceUseCase(spaceRepository);
+            _createSpaceUseCase = new CreateSpaceUseCase(spaceRepository);
+            _getSpaceByIdUseCase = new GetSpaceByIdUseCase(spaceRepository);
         }
 
         [Fact]
@@ -25,7 +26,7 @@ namespace VibeSync.Tests.Application
             const string DEFAULT_URL = "https://www.google.com/search?q=";
 
             // Arrange
-            var createdSpace = await _useCase.CreateSpace(
+            var createdSpace = await _createSpaceUseCase.Execute(
                 new CreateSpaceRequest(DEFAULT_SPACE_NAME, DateTime.Now));
 
             var guid = createdSpace.Id;
@@ -40,7 +41,7 @@ namespace VibeSync.Tests.Application
             expected = expected with { QrCode = createdSpace.QrCode };
 
             // Act    
-            var actual = await _useCase.GetSpaceById(guid);
+            var actual = await _getSpaceByIdUseCase.Execute(guid);
 
             // Assert
             Assert.Equal(expected, actual);
@@ -54,7 +55,7 @@ namespace VibeSync.Tests.Application
 
             // Act & Assert
             await Assert.ThrowsAsync<SpaceNotFoundException>(async () =>
-                await _useCase.GetSpaceById(nonExistentGuid));
+                await _getSpaceByIdUseCase.Execute(nonExistentGuid));
         }
     }
 }

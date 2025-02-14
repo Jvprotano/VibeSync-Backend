@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VibeSync.Application.Contracts.Repositories;
-using VibeSync.Application.Contracts.UseCases;
+using VibeSync.Application.Helpers;
 using VibeSync.Application.UseCases;
 using VibeSync.Infrastructure;
 using VibeSync.Infrastructure.Repositories;
@@ -15,8 +15,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+builder.Services.Configure<YouTubeSettings>(builder.Configuration.GetSection("YoutubeSettings"));
 builder.Services.AddScoped<ISpaceRepository, SpaceRepository>();
-builder.Services.AddScoped<ISpaceUseCase, SpaceUseCase>();
+builder.Services.AddScoped<CreateSpaceUseCase>();
+builder.Services.AddScoped<GetSpaceByIdUseCase>();
+builder.Services.AddScoped<SearchSongUseCase>();
+
+builder.Services.AddScoped<SuggestMusicToSpaceUseCase>();
+builder.Services.AddScoped<ISuggestionRepository, SuggestionRepository>();
+
+builder.Services.AddScoped<GetSuggestionsUseCase>();
+builder.Services.AddHttpClient<ISongIntegrationRepository, SongIntegrationRepository>();
 
 builder.Services.AddControllers();
 

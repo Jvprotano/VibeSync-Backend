@@ -6,4 +6,5 @@ namespace VibeSync.Infrastructure;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<Space> Spaces { get; set; }
+    public DbSet<Suggestion> Suggestions { get; set; }
 }

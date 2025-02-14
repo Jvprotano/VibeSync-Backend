@@ -7,10 +7,10 @@ namespace VibeSync.Infrastructure.Repositories;
 
 public sealed class SpaceRepository(AppDbContext appDbContext) : ISpaceRepository
 {
-    public async Task<Space> GetSpaceById(Guid guid)
+    public async Task<Space?> GetSpaceById(Guid guid)
     {
         return await appDbContext.Spaces
-            .FirstAsync(c => c.Id == guid);
+            .FirstOrDefaultAsync(c => c.Id == guid);
     }
     public async Task<Space> CreateSpace(Space space)
     {

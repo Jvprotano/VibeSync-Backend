@@ -5,25 +5,24 @@
 namespace VibeSync.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class Suggestion : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Spaces",
+                name: "Suggestions",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ExpirationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    AdminToken = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    QrCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SongId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SpaceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SuggestedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Spaces", x => x.Id);
+                    table.PrimaryKey("PK_Suggestions", x => x.Id);
                 });
         }
 
@@ -31,7 +30,7 @@ namespace VibeSync.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Spaces");
+                name: "Suggestions");
         }
     }
 }

@@ -2,7 +2,7 @@ using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Domain.Models;
 
-namespace VibeSync.Application.Helpers;
+namespace VibeSync.Application.Extensions;
 
 public static class SpaceExtension
 {

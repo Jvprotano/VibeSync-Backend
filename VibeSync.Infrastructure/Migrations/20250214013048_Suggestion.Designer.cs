@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VibeSync.Infrastructure;
 
@@ -11,9 +12,11 @@ using VibeSync.Infrastructure;
 namespace VibeSync.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250214013048_Suggestion")]
+    partial class Suggestion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,20 +75,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SpaceId");
-
                     b.ToTable("Suggestions");
-                });
-
-            modelBuilder.Entity("VibeSync.Domain.Models.Suggestion", b =>
-                {
-                    b.HasOne("VibeSync.Domain.Models.Space", "Space")
-                        .WithMany()
-                        .HasForeignKey("SpaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Space");
                 });
 #pragma warning restore 612, 618
         }
