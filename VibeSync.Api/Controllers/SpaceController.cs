@@ -7,7 +7,7 @@ namespace VibeSync.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SpaceController(CreateSpaceUseCase createSpaceUseCase, GetSpaceByIdUseCase getSpaceByIdUseCase, SuggestMusicToSpaceUseCase suggestMusicToSpaceUseCase, GetSuggestionsUseCase getSuggestionsUseCase) : ControllerBase
+public class SpaceController(CreateSpaceUseCase createSpaceUseCase, GetSpaceByIdUseCase getSpaceByIdUseCase, SuggestSongToSpaceUseCase suggestSongToSpaceUseCase, GetSuggestionsUseCase getSuggestionsUseCase) : ControllerBase
 {
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSpaceById(Guid id)
@@ -31,9 +31,9 @@ public class SpaceController(CreateSpaceUseCase createSpaceUseCase, GetSpaceById
     }
 
     [HttpPost("suggest")]
-    public async Task<IActionResult> SuggestMusicToSpace([FromBody] SuggestMusicRequest request)
+    public async Task<IActionResult> SuggestSongToSpace([FromBody] SuggestSongRequest request)
     {
-        var suggestion = await suggestMusicToSpaceUseCase.Execute(request);
+        var suggestion = await suggestSongToSpaceUseCase.Execute(request);
         return Ok(suggestion);
     }
 

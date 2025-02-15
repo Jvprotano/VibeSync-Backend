@@ -6,9 +6,9 @@ using VibeSync.Application.Responses;
 
 namespace VibeSync.Application.UseCases;
 
-public class SuggestMusicToSpaceUseCase(ISuggestionRepository suggestionRepository) : IUseCase<SuggestMusicRequest, SuggestionResponse>
+public class SuggestSongToSpaceUseCase(ISuggestionRepository suggestionRepository) : IUseCase<SuggestSongRequest, SuggestionResponse>
 {
-    public async Task<SuggestionResponse> Execute(SuggestMusicRequest request)
+    public async Task<SuggestionResponse> Execute(SuggestSongRequest request)
     {
         var response = await suggestionRepository.CreateSuggestion(request.AsModel());
 

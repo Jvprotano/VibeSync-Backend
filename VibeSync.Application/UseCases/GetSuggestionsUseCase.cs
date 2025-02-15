@@ -29,7 +29,9 @@ public class GetSuggestionsUseCase(ISuggestionRepository suggestionRepository, I
             song.Id,
             song.Snippet.Title,
             song.Snippet.Thumbnails.Default.Url,
-            song.Snippet.ChannelTitle
+            song.Snippet.ChannelTitle,
+            string.Empty,
+            string.Empty
         ));
     }
 }

@@ -6,7 +6,7 @@ namespace VibeSync.Application.Extensions;
 
 public static class SuggestionExtension
 {
-    public static Suggestion AsModel(this SuggestMusicRequest suggestion)
+    public static Suggestion AsModel(this SuggestSongRequest suggestion)
     {
         return new Suggestion(
             suggestion.SpaceId,

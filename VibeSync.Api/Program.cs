@@ -21,7 +21,7 @@ builder.Services.AddScoped<CreateSpaceUseCase>();
 builder.Services.AddScoped<GetSpaceByIdUseCase>();
 builder.Services.AddScoped<SearchSongUseCase>();
 
-builder.Services.AddScoped<SuggestMusicToSpaceUseCase>();
+builder.Services.AddScoped<SuggestSongToSpaceUseCase>();
 builder.Services.AddScoped<ISuggestionRepository, SuggestionRepository>();
 
 builder.Services.AddScoped<GetSuggestionsUseCase>();
@@ -38,6 +38,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
 app.MapControllers();
 

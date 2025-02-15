@@ -4,6 +4,8 @@ namespace VibeSync.Application.Responses;
 
 public class YouTubeSearchResponse
 {
+    public string? NextPageToken { get; set; }
+    public string? PrevPageToken { get; set; }
     public List<YouTubeSearchItem> Items { get; set; } = new();
 }
 
