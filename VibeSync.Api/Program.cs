@@ -18,7 +18,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.Configure<YouTubeSettings>(builder.Configuration.GetSection("YoutubeSettings"));
 builder.Services.AddScoped<ISpaceRepository, SpaceRepository>();
 builder.Services.AddScoped<CreateSpaceUseCase>();
-builder.Services.AddScoped<GetSpaceByIdUseCase>();
+builder.Services.AddScoped<GetSpaceByPublicTokenUseCase>();
+builder.Services.AddScoped<GetSpaceByAdminTokenUseCase>();
 builder.Services.AddScoped<SearchSongUseCase>();
 
 builder.Services.AddScoped<SuggestSongToSpaceUseCase>();

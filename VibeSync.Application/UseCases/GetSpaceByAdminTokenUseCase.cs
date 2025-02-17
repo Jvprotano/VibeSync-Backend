@@ -6,11 +6,11 @@ using VibeSync.Domain.Exceptions;
 
 namespace VibeSync.Application.UseCases;
 
-public class GetSpaceByIdUseCase(ISpaceRepository spaceRepository) : IUseCase<Guid, SpaceResponse>
+public class GetSpaceByAdminTokenUseCase(ISpaceRepository spaceRepository) : IUseCase<Guid, SpaceResponse>
 {
-    public async Task<SpaceResponse> Execute(Guid guid)
+    public async Task<SpaceResponse> Execute(Guid publicToken)
     {
-        var response = await spaceRepository.GetSpaceById(guid) ?? throw new SpaceNotFoundException(guid); ;
+        var response = await spaceRepository.GetSpaceByAdminToken(publicToken) ?? throw new SpaceNotFoundException(publicToken); ;
 
         return response.AsDomain();
     }

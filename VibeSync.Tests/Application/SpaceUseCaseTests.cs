@@ -10,13 +10,14 @@ namespace VibeSync.Tests.Application
     public class SpaceUseCaseTests : DatabaseTestBase
     {
         private readonly CreateSpaceUseCase _createSpaceUseCase;
-        private readonly GetSpaceByIdUseCase _getSpaceByIdUseCase;
+        private readonly GetSpaceByAdminTokenUseCase _getSpaceByAdminTokenUseCase;
+
 
         public SpaceUseCaseTests()
         {
             var spaceRepository = new SpaceRepository(_context);
             _createSpaceUseCase = new CreateSpaceUseCase(spaceRepository);
-            _getSpaceByIdUseCase = new GetSpaceByIdUseCase(spaceRepository);
+            _getSpaceByAdminTokenUseCase = new GetSpaceByAdminTokenUseCase(spaceRepository);
         }
 
         [Fact]
@@ -29,19 +30,21 @@ namespace VibeSync.Tests.Application
             var createdSpace = await _createSpaceUseCase.Execute(
                 new CreateSpaceRequest(DEFAULT_SPACE_NAME, DateTime.Now));
 
-            var guid = createdSpace.Id;
+            var publicToken = createdSpace.PublicToken;
+            var adminToken = createdSpace.AdminToken;
 
             var expected = new SpaceResponse(
-                guid,
+                publicToken,
+                adminToken,
                 DEFAULT_SPACE_NAME,
-                $"{DEFAULT_URL}{guid}",
+                $"{DEFAULT_URL}{publicToken}",
                 "Fake Qr Code"
             );
 
             expected = expected with { QrCode = createdSpace.QrCode };
 
             // Act    
-            var actual = await _getSpaceByIdUseCase.Execute(guid);
+            var actual = await _getSpaceByAdminTokenUseCase.Execute(publicToken);
 
             // Assert
             Assert.Equal(expected, actual);
@@ -55,7 +58,7 @@ namespace VibeSync.Tests.Application
 
             // Act & Assert
             await Assert.ThrowsAsync<SpaceNotFoundException>(async () =>
-                await _getSpaceByIdUseCase.Execute(nonExistentGuid));
+                await _getSpaceByAdminTokenUseCase.Execute(nonExistentGuid));
         }
     }
 }

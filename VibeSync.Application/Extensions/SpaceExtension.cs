@@ -9,18 +9,26 @@ public static class SpaceExtension
     public static Space AsModel(this CreateSpaceRequest space)
     {
         return new Space(
-            space.Name,
-            space.Expiration
+            space.Name
         );
     }
 
     public static SpaceResponse AsDomain(this Space space)
     {
         return new SpaceResponse(
-            space.Id,
+            space.AdminToken,
+            space.PublicToken,
             space.Name,
             $"https://www.google.com/search?q={space.Id}",
             space.QrCode
+        );
+    }
+
+    public static GetPublicSpaceResponse AsPublicDomain(this Space space)
+    {
+        return new GetPublicSpaceResponse(
+            space.PublicToken,
+            space.Name
         );
     }
 }

@@ -7,14 +7,33 @@ namespace VibeSync.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SpaceController(CreateSpaceUseCase createSpaceUseCase, GetSpaceByIdUseCase getSpaceByIdUseCase, SuggestSongToSpaceUseCase suggestSongToSpaceUseCase, GetSuggestionsUseCase getSuggestionsUseCase) : ControllerBase
+public class SpaceController(
+    CreateSpaceUseCase createSpaceUseCase,
+    GetSpaceByPublicTokenUseCase getSpaceByPublicTokenUseCase,
+    SuggestSongToSpaceUseCase suggestSongToSpaceUseCase,
+    GetSuggestionsUseCase getSuggestionsUseCase,
+    GetSpaceByAdminTokenUseCase getSpaceByAdminTokenUseCase) : ControllerBase
 {
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetSpaceById(Guid id)
+    [HttpGet("{token}")]
+    public async Task<IActionResult> GetSpaceByPublicToken(Guid token)
     {
         try
         {
-            var space = await getSpaceByIdUseCase.Execute(id);
+            var space = await getSpaceByPublicTokenUseCase.Execute(token);
+            return Ok(space);
+        }
+        catch (SpaceNotFoundException exception)
+        {
+            return NotFound(exception.Message);
+        }
+    }
+
+    [HttpGet("admin/{adminToken}")]
+    public async Task<IActionResult> GetSpaceByAdminToken(Guid adminToken)
+    {
+        try
+        {
+            var space = await getSpaceByAdminTokenUseCase.Execute(adminToken);
             return Ok(space);
         }
         catch (SpaceNotFoundException exception)
@@ -27,7 +46,7 @@ public class SpaceController(CreateSpaceUseCase createSpaceUseCase, GetSpaceById
     public async Task<IActionResult> CreateSpace([FromBody] CreateSpaceRequest request)
     {
         var space = await createSpaceUseCase.Execute(request);
-        return CreatedAtAction(nameof(GetSpaceById), new { id = space.Id }, space);
+        return CreatedAtAction(nameof(GetSpaceByPublicToken), new { AdminToken = space.AdminToken }, space);
     }
 
     [HttpPost("suggest")]

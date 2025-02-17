@@ -2,15 +2,18 @@ namespace VibeSync.Domain.Models;
 
 public class Space : BaseEntity
 {
-    protected Space() { }
-    public Space(string name, DateTime? expirationDate)
+    public Space(string name)
     {
         Name = name;
-        ExpirationDate = expirationDate ?? this.CreatedAt.AddDays(7);
+        ExpirationDate = CreatedAt.AddDays(7);
+        AdminToken = Guid.NewGuid();
+        PublicToken = Guid.NewGuid();
     }
+
     public string Name { get; private set; } = string.Empty;
     public DateTime ExpirationDate { get; private set; }
-    public string AdminToken { get; private set; } = Guid.NewGuid().ToString();
+    public Guid PublicToken { get; private set; }
+    public Guid AdminToken { get; private set; }
     public string QrCode { get; private set; } = string.Empty;
 
     public void SetQrCode(string qrCode)
