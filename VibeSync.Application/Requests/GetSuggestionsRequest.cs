@@ -1,3 +1,3 @@
 namespace VibeSync.Application.Requests;
 
-public sealed record GetSuggestionsRequest(Guid SpaceId, DateTime? StartDateTime, DateTime? EndDateTime);
+public sealed record GetSuggestionsRequest(Guid SpaceAdminToken, DateTime? StartDateTime, DateTime? EndDateTime, int Amount = 10);

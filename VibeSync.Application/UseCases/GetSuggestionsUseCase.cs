@@ -2,19 +2,25 @@ using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.Contracts.UseCases;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
+using VibeSync.Domain.Exceptions;
 using VibeSync.Domain.Models;
 
 namespace VibeSync.Application.UseCases;
 
-public class GetSuggestionsUseCase(ISuggestionRepository suggestionRepository, ISongIntegrationRepository songIntegrationRepository) : IUseCase<GetSuggestionsRequest, IEnumerable<GetSuggestionsResponse>>
+public class GetSuggestionsUseCase(ISuggestionRepository suggestionRepository, ISongIntegrationRepository songIntegrationRepository, ISpaceRepository spaceRepository) : IUseCase<GetSuggestionsRequest, IEnumerable<GetSuggestionsResponse>>
 {
     public async Task<IEnumerable<GetSuggestionsResponse>> Execute(GetSuggestionsRequest request)
     {
-        IEnumerable<Suggestion> response = suggestionRepository.GetSuggestions(request.SpaceId, request.StartDateTime, request.EndDateTime);
+        var space = await spaceRepository.GetSpaceByAdminToken(request.SpaceAdminToken) ?? throw new SpaceNotFoundException(request.SpaceAdminToken);
+
+        var response = suggestionRepository.GetSuggestions(space.Id, request.StartDateTime, request.EndDateTime, request.Amount);
 
         var songs = await GetSongsByResponse(response);
 
-        return songs.Items.Select(song => GetSongResponse(song, response)).ToList();
+        return songs.Items.Select(song => GetSongResponse(song, response))
+        .OrderByDescending(song => song.countSuggestions)
+        .Take(request.Amount)
+        .ToArray();
     }
 
     private async Task<YouTubeVideoResponse> GetSongsByResponse(IEnumerable<Suggestion> response)
@@ -31,7 +37,8 @@ public class GetSuggestionsUseCase(ISuggestionRepository suggestionRepository, I
             song.Snippet.Thumbnails.Default.Url,
             song.Snippet.ChannelTitle,
             string.Empty,
-            string.Empty
+            string.Empty,
+            song.Snippet.PublishedAt
         ));
     }
 }

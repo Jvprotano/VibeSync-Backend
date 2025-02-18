@@ -17,7 +17,8 @@ public class SearchSongUseCase(ISongIntegrationRepository songIntegrationReposit
             item.Snippet.Thumbnails.Default.Url,
             item.Snippet.ChannelTitle,
             result.NextPageToken,
-            result.PrevPageToken
+            result.PrevPageToken,
+            item.Snippet.PublishedAt
         )).ToList();
     }
 }

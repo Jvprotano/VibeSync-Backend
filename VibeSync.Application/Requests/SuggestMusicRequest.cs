@@ -1,3 +1,3 @@
 namespace VibeSync.Application.Requests;
 
-public sealed record SuggestSongRequest(Guid SpaceId, string SongId, string? SuggestedBy);
+public sealed record SuggestSongRequest(Guid spaceToken, string SongId, string? SuggestedBy);

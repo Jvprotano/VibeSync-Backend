@@ -7,5 +7,6 @@ public sealed record SongResponse
     string ThumbnailUrl,
     string ArtistName,
     string? NextPageToken,
-    string? PrevPageToken
+    string? PrevPageToken,
+    DateTime? PublishedAt
 );
