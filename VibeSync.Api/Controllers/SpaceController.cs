@@ -47,7 +47,15 @@ public class SpaceController(
     [ProducesResponseType(typeof(SpaceResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateSpace([FromBody] CreateSpaceRequest request)
     {
-        var space = await createSpaceUseCase.Execute(request);
-        return CreatedAtAction(nameof(GetSpaceByPublicToken), new { space.AdminToken }, space);
+        try
+        {
+            var space = await createSpaceUseCase.Execute(request);
+
+            return Ok(space);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
     }
 }

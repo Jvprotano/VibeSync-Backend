@@ -1,6 +1,6 @@
 using QRCoder;
 
-namespace VibeSync.Infrastructure.Extensions;
+namespace VibeSync.Infrastructure.Helpers;
 
 public static class QrCodeExtension
 {

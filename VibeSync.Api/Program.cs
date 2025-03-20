@@ -3,6 +3,7 @@ using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.Helpers;
 using VibeSync.Application.UseCases;
 using VibeSync.Infrastructure;
+using VibeSync.Infrastructure.Helpers;
 using VibeSync.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,7 @@ builder.Services.AddScoped<ISuggestionRepository, SuggestionRepository>();
 
 builder.Services.AddScoped<GetSuggestionsUseCase>();
 builder.Services.AddHttpClient<ISongIntegrationRepository, SongIntegrationRepository>();
+builder.Services.AddSingleton<SuggestionRateLimiter>();
 
 builder.Services.AddControllers();
 

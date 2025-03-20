@@ -13,7 +13,7 @@ public class GetSuggestionsUseCase(ISuggestionRepository suggestionRepository, I
     {
         var space = await spaceRepository.GetSpaceByAdminToken(request.SpaceAdminToken) ?? throw new SpaceNotFoundException(request.SpaceAdminToken);
 
-        var response = suggestionRepository.GetSuggestions(space.Id, request.StartDateTime, request.EndDateTime, request.Amount);
+        var response = await suggestionRepository.GetSuggestions(space.Id, request.StartDateTime, request.EndDateTime, request.Amount);
 
         var songs = await GetSongsByResponse(response);
 

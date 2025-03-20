@@ -10,6 +10,9 @@ public class CreateSpaceUseCase(ISpaceRepository spaceRepository) : IUseCase<Cre
 {
     public async Task<SpaceResponse> Execute(CreateSpaceRequest request)
     {
+        if (request.Name.Length < 3)
+            throw new ArgumentException("O nome do Space deve ter no mínimo 3 caracteres.");
+
         var response = await spaceRepository.CreateSpace(request.AsModel());
 
         return response.AsDomain();

@@ -8,34 +8,35 @@ namespace VibeSync.Infrastructure.Repositories;
 
 public class SongIntegrationRepository(IOptions<YouTubeSettings> settings, HttpClient httpClient) : ISongIntegrationRepository
 {
-    private readonly string _youtubeApiKey = settings.Value.ApiKey;
+    private readonly string youtubeApiKey = settings.Value.ApiKey;
+    private readonly string youtubeBaseUrl = settings.Value.BaseUrl;
     private readonly JsonSerializerOptions jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-public async Task<YouTubeSearchResponse> SearchByTerm(string query, int pageSize = 10, string? pageToken = null)
-{
-    var url = GetRequestUriByTerm(query, _youtubeApiKey, pageSize, pageToken);
+    public async Task<YouTubeSearchResponse> SearchByTerm(string query, int pageSize = 10, string? pageToken = null)
+    {
+        var url = GetRequestUriByTerm(query, youtubeApiKey, pageSize, pageToken);
 
-    var response = await httpClient.GetAsync(url);
-    response.EnsureSuccessStatusCode();
+        var response = await httpClient.GetAsync(url);
+        response.EnsureSuccessStatusCode();
 
-    var content = await response.Content.ReadAsStringAsync();
-    var result = JsonSerializer.Deserialize<YouTubeSearchResponse>(content, jsonOptions);
+        var content = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<YouTubeSearchResponse>(content, jsonOptions);
 
-    return result ?? new();
-}
+        return result ?? new();
+    }
 
-private static string GetRequestUriByTerm(string query, string apiKey, int pageSize, string? pageToken)
-{
-    var url = $"https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q={query}&maxResults={pageSize}&videoCategoryId=10&key={apiKey}";
-    
-    if (!string.IsNullOrEmpty(pageToken))
-        url += $"&pageToken={pageToken}";
+    private string GetRequestUriByTerm(string query, string apiKey, int pageSize, string? pageToken)
+    {
+        var url = $"{youtubeBaseUrl}/search?part=snippet&type=video&q={query}&maxResults={pageSize}&videoCategoryId=10&key={apiKey}";
 
-    return url;
-}
+        if (!string.IsNullOrEmpty(pageToken))
+            url += $"&pageToken={pageToken}";
+
+        return url;
+    }
     public async Task<YouTubeVideoResponse> SearchByVideoIds(string[] videoIds)
     {
-        var url = GetRequestUriByIds(string.Join(",", videoIds), _youtubeApiKey);
+        var url = GetRequestUriByIds(string.Join(",", videoIds), youtubeApiKey);
 
         var response = await httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
@@ -46,6 +47,6 @@ private static string GetRequestUriByTerm(string query, string apiKey, int pageS
         return result ?? new();
     }
 
-    private static string GetRequestUriByIds(string videoIds, string apiKey)
-    => $"https://www.googleapis.com/youtube/v3/videos?part=snippet&id={videoIds}&key={apiKey}";
+    private string GetRequestUriByIds(string videoIds, string apiKey)
+    => $"{youtubeBaseUrl}/videos?part=snippet&id={videoIds}&key={apiKey}";
 }

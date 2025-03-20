@@ -3,6 +3,7 @@ using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
 using VibeSync.Domain.Exceptions;
+using VibeSync.Infrastructure.Helpers;
 
 namespace VibeSync.Api.Controllers;
 
@@ -16,7 +17,13 @@ public class SuggestionController(SuggestSongToSpaceUseCase suggestSongToSpaceUs
     {
         try
         {
+            string userIdentifier = HttpContext.Connection.RemoteIpAddress?.ToString() ?? Request.Headers["X-Forwarded-For"].FirstOrDefault() ?? "unknown";
+
+            if (!SuggestionRateLimiter.CanSuggest(userIdentifier, request.SongId, request.spaceToken))
+                return StatusCode(429, "Você já sugeriu essa música recentemente.");
+
             var suggestion = await suggestSongToSpaceUseCase.Execute(request);
+
             return Ok(suggestion);
         }
         catch (SpaceNotFoundException exception)

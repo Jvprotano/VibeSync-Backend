@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Domain.Models;
 
@@ -12,7 +13,7 @@ public class SuggestionRepository(AppDbContext appDbContext) : ISuggestionReposi
         return request;
     }
 
-    public IEnumerable<Suggestion> GetSuggestions(Guid spaceId, DateTime? startDateTime, DateTime? endDateTime, int? amount)
+    public async Task<IEnumerable<Suggestion>> GetSuggestions(Guid spaceId, DateTime? startDateTime, DateTime? endDateTime, int? amount)
     {
         var query = appDbContext.Suggestions.Where(s => s.SpaceId == spaceId);
 
@@ -22,6 +23,6 @@ public class SuggestionRepository(AppDbContext appDbContext) : ISuggestionReposi
         if (endDateTime.HasValue)
             query = query.Where(s => s.CreatedAt <= endDateTime);
 
-        return query.ToArray();
+        return await query.ToArrayAsync();
     }
 }
