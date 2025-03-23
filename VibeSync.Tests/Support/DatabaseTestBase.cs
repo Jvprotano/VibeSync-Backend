@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using VibeSync.Infrastructure;
+using VibeSync.Infrastructure.Context;
 
 namespace VibeSync.Tests.Support;
 

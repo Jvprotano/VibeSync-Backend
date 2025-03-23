@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Domain.Models;
+using VibeSync.Infrastructure.Context;
 
 namespace VibeSync.Infrastructure.Repositories;
 
