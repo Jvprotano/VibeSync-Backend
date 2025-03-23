@@ -6,10 +6,11 @@ namespace VibeSync.Application.Extensions;
 
 public static class SpaceExtension
 {
-    public static Space AsModel(this CreateSpaceRequest space)
+    public static Space AsModel(this CreateSpaceRequest space, string userId)
     {
         return new Space(
-            space.Name
+            space.Name,
+            userId
         );
     }
 

@@ -53,6 +53,10 @@ public class SpaceController(
 
             return Ok(space);
         }
+        catch (UnauthorizedAccessException exception)
+        {
+            return Unauthorized(exception.Message);
+        }
         catch (ArgumentException exception)
         {
             return BadRequest(exception.Message);
