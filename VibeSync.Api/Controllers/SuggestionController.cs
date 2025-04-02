@@ -1,49 +1,35 @@
 using Microsoft.AspNetCore.Mvc;
+using VibeSync.Api.Controllers.Base;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
-using VibeSync.Domain.Exceptions;
 using VibeSync.Infrastructure.Helpers;
 
 namespace VibeSync.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SuggestionController(SuggestSongToSpaceUseCase suggestSongToSpaceUseCase, GetSuggestionsUseCase getSuggestionsUseCase) : ControllerBase
+public class SuggestionController(
+    ILogger<SuggestionController> logger,
+    SuggestSongToSpaceUseCase suggestSongToSpaceUseCase,
+    GetSuggestionsUseCase getSuggestionsUseCase) : BaseController(logger)
 {
     [HttpPost("suggest")]
     [ProducesResponseType(typeof(SuggestionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Suggest([FromBody] SuggestSongRequest request)
     {
-        try
-        {
-            string userIdentifier = HttpContext.Connection.RemoteIpAddress?.ToString() ?? Request.Headers["X-Forwarded-For"].FirstOrDefault() ?? "unknown";
+        string userIdentifier = HttpContext.Connection.RemoteIpAddress?.ToString() ?? Request.Headers["X-Forwarded-For"].FirstOrDefault() ?? "unknown";
 
-            if (!SuggestionRateLimiter.CanSuggest(userIdentifier, request.SongId, request.spaceToken))
-                return StatusCode(429, "Você já sugeriu essa música recentemente.");
+        if (!SuggestionRateLimiter.CanSuggest(userIdentifier, request.SongId, request.spaceToken))
+            return StatusCode(429, new ErrorResponse("Too many suggestions of the same music. Allowed only once every 5 minutes.", StatusCodes.Status429TooManyRequests));
 
-            var suggestion = await suggestSongToSpaceUseCase.Execute(request);
-
-            return Ok(suggestion);
-        }
-        catch (SpaceNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
+        return await Handle(() => suggestSongToSpaceUseCase.Execute(request));
     }
 
     [HttpGet("suggestions")]
     [ProducesResponseType(typeof(IEnumerable<GetSuggestionsResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSuggestions([FromQuery] GetSuggestionsRequest request)
-    {
-        try
-        {
-            var suggestions = await getSuggestionsUseCase.Execute(request);
-            return Ok(suggestions);
-        }
-        catch (SpaceNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
-    }
+        => await Handle(() => getSuggestionsUseCase.Execute(request));
 }

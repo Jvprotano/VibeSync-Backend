@@ -1,6 +1,5 @@
 using FluentValidation;
 using VibeSync.Application.Requests;
-using VibeSync.Domain.Models;
 
 namespace VibeSync.Application.Validators;
 

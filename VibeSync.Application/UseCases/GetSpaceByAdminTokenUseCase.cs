@@ -10,8 +10,8 @@ public class GetSpaceByAdminTokenUseCase(ISpaceRepository spaceRepository) : IUs
 {
     public async Task<SpaceResponse> Execute(Guid publicToken)
     {
-        var response = await spaceRepository.GetSpaceByAdminToken(publicToken) ?? throw new SpaceNotFoundException(publicToken); ;
+        var response = await spaceRepository.GetSpaceByAdminTokenAsync(publicToken) ?? throw new SpaceNotFoundException(publicToken); ;
 
-        return response.AsDomain();
+        return response.AsResponseModel();
     }
 }

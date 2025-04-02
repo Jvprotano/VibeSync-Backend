@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VibeSync.Application.Contracts.Repositories;
-using VibeSync.Application.Exceptions;
 using VibeSync.Infrastructure.Context;
 
 namespace VibeSync.Infrastructure.Repositories;

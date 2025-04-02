@@ -16,7 +16,9 @@ namespace VibeSync.Tests.Application
         public SpaceUseCaseTests()
         {
             var spaceRepository = new SpaceRepository(_context);
-            _createSpaceUseCase = new CreateSpaceUseCase(spaceRepository);
+            var userRepository = new UserRepository(_context, null!);
+
+            _createSpaceUseCase = new CreateSpaceUseCase(spaceRepository, userRepository);
             _getSpaceByAdminTokenUseCase = new GetSpaceByAdminTokenUseCase(spaceRepository);
         }
 
@@ -24,11 +26,13 @@ namespace VibeSync.Tests.Application
         public async Task ShouldReturnSpace_WhenSuccessGet()
         {
             const string DEFAULT_SPACE_NAME = "Fake Space";
+            const string DEFAULT_USER_EMAIL = "Test@test.com";
+
             const string DEFAULT_URL = "https://www.google.com/search?q=";
 
             // Arrange
             var createdSpace = await _createSpaceUseCase.Execute(
-                new CreateSpaceRequest(DEFAULT_SPACE_NAME, DateTime.Now));
+                new CreateSpaceRequest(DEFAULT_SPACE_NAME, DEFAULT_USER_EMAIL, DateTime.Now));
 
             var publicToken = createdSpace.PublicToken;
             var adminToken = createdSpace.AdminToken;

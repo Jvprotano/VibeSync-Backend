@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using VibeSync.Api.Controllers.Base;
+using VibeSync.Application.Exceptions;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
@@ -9,57 +11,43 @@ namespace VibeSync.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class SpaceController(
+    ILogger<SpaceController> logger,
     CreateSpaceUseCase createSpaceUseCase,
     GetSpaceByPublicTokenUseCase getSpaceByPublicTokenUseCase,
-    GetSpaceByAdminTokenUseCase getSpaceByAdminTokenUseCase) : ControllerBase
+    GetSpaceByAdminTokenUseCase getSpaceByAdminTokenUseCase) : BaseController(logger)
 {
     [HttpGet("{token}")]
-    [ProducesResponseType(typeof(GetPublicSpaceResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSpaceByPublicToken(Guid token)
-    {
-        try
-        {
-            var space = await getSpaceByPublicTokenUseCase.Execute(token);
-            return Ok(space);
-        }
-        catch (SpaceNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
-    }
+        => await Handle(() => getSpaceByPublicTokenUseCase.Execute(token));
 
     [HttpGet("admin/{adminToken}")]
     [ProducesResponseType(typeof(SpaceResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSpaceByAdminToken(Guid adminToken)
-    {
-        try
-        {
-            var space = await getSpaceByAdminTokenUseCase.Execute(adminToken);
-            return Ok(space);
-        }
-        catch (SpaceNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
-    }
+        => await Handle(() => getSpaceByAdminTokenUseCase.Execute(adminToken));
 
     [HttpPost]
     [ProducesResponseType(typeof(SpaceResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> CreateSpace([FromBody] CreateSpaceRequest request)
     {
         try
         {
-            var space = await createSpaceUseCase.Execute(request);
-
-            return Ok(space);
+            return await Handle(() => createSpaceUseCase.Execute(request));
+        }
+        catch (SpacesPerUserLimitException exception)
+        {
+            return StatusCode(429, new ErrorResponse(exception.Message, StatusCodes.Status429TooManyRequests));
         }
         catch (UnauthorizedAccessException exception)
         {
-            return Unauthorized(exception.Message);
+            return Unauthorized(new ErrorResponse(exception.Message, StatusCodes.Status401Unauthorized));
         }
         catch (ArgumentException exception)
         {
-            return BadRequest(exception.Message);
+            return BadRequest(new ErrorResponse(exception.Message, StatusCodes.Status400BadRequest));
         }
     }
 }

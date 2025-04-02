@@ -6,7 +6,7 @@ namespace VibeSync.Application.Extensions;
 
 public static class SpaceExtension
 {
-    public static Space AsModel(this CreateSpaceRequest space, string userId)
+    public static Space AsDomain(this CreateSpaceRequest space, string userId)
     {
         return new Space(
             space.Name,
@@ -14,7 +14,7 @@ public static class SpaceExtension
         );
     }
 
-    public static SpaceResponse AsDomain(this Space space)
+    public static SpaceResponse AsResponseModel(this Space space)
     {
         return new SpaceResponse(
             space.AdminToken,
@@ -25,7 +25,7 @@ public static class SpaceExtension
         );
     }
 
-    public static GetPublicSpaceResponse AsPublicDomain(this Space space)
+    public static GetPublicSpaceResponse AsPublicResponseModel(this Space space)
     {
         return new GetPublicSpaceResponse(
             space.PublicToken,
