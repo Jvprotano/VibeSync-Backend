@@ -11,13 +11,11 @@ namespace VibeSync.Application.UseCases;
 
 public class CreateSpaceUseCase(ISpaceRepository spaceRepository, IUserRepository userRepository) : IUseCase<CreateSpaceRequest, SpaceResponse>
 {
-    private string userId = string.Empty;
-
     public async Task<SpaceResponse> Execute(CreateSpaceRequest request)
     {
         await Validate(request);
 
-        await GetOrCreateUser(request.UserEmail);
+        var userId = await GetOrCreateUser(request.UserEmail);
 
         await CheckUserSpaceLimit(userId);
 
@@ -37,14 +35,13 @@ public class CreateSpaceUseCase(ISpaceRepository spaceRepository, IUserRepositor
 
     private async Task<string> GetOrCreateUser(string userEmail)
     {
-        userId = await userRepository.GetUserIdByEmail(userEmail)
-            ?? await userRepository.AddPartialUser(userEmail)
-            ?? string.Empty;
+        var user = await userRepository.GetUserByEmailAsync(userEmail)
+            ?? await userRepository.AddPartialUser(userEmail);
 
-        if (string.IsNullOrEmpty(userId))
+        if (string.IsNullOrEmpty(user?.Id))
             throw new CreateUserException("Error creating partial user.");
 
-        return userId;
+        return user.Id;
     }
 
     private async Task CheckUserSpaceLimit(string userId)

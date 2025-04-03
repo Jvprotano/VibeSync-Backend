@@ -189,7 +189,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Spaces");
+                    b.ToTable("Spaces", (string)null);
                 });
 
             modelBuilder.Entity("VibeSync.Domain.Models.Suggestion", b =>
@@ -215,7 +215,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("SpaceId");
 
-                    b.ToTable("Suggestions");
+                    b.ToTable("Suggestions", (string)null);
                 });
 
             modelBuilder.Entity("VibeSync.Infrastructure.Context.ApplicationUser", b =>

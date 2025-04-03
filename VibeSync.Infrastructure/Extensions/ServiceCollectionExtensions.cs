@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<SearchSongUseCase>();
         services.AddScoped<SuggestSongToSpaceUseCase>();
         services.AddScoped<GetSuggestionsUseCase>();
+        services.AddScoped<RegisterUserUseCase>();
 
         return services;
     }

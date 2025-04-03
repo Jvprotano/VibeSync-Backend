@@ -31,11 +31,11 @@ public class SpaceController(
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
-    public async Task<IActionResult> CreateSpace([FromBody] CreateSpaceRequest request)
+    public async Task<IActionResult> CreateSpace([FromBody] CreateSpaceRequest payload)
     {
         try
         {
-            return await Handle(() => createSpaceUseCase.Execute(request));
+            return await Handle(() => createSpaceUseCase.Execute(payload));
         }
         catch (SpacesPerUserLimitException exception)
         {

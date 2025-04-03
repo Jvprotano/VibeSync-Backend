@@ -12,6 +12,6 @@ public class SongController(SearchSongUseCase searchSongUseCase, ILogger<SongCon
 {
     [HttpGet("search")]
     [ProducesResponseType(typeof(IEnumerable<SongResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> SearchSong([FromQuery] SearchSongRequest request)
-        => await Handle(() => searchSongUseCase.Execute(request));
+    public async Task<IActionResult> SearchSong([FromQuery] SearchSongRequest payload)
+        => await Handle(() => searchSongUseCase.Execute(payload));
 }

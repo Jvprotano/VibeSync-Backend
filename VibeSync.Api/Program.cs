@@ -45,6 +45,6 @@ app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(
 
 app.MapControllers();
 
-app.MapIdentityApi<ApplicationUser>();
+app.MapGroup("/api/auth").WithTags("Auth").MapIdentityApi<ApplicationUser>();
 
 app.Run();
