@@ -1,10 +1,11 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VibeSync.Api.Controllers.Base;
 using VibeSync.Application.Exceptions;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
-using VibeSync.Domain.Exceptions;
 
 namespace VibeSync.Api.Controllers;
 
@@ -14,7 +15,8 @@ public class SpaceController(
     ILogger<SpaceController> logger,
     CreateSpaceUseCase createSpaceUseCase,
     GetSpaceByPublicTokenUseCase getSpaceByPublicTokenUseCase,
-    GetSpaceByAdminTokenUseCase getSpaceByAdminTokenUseCase) : BaseController(logger)
+    GetSpaceByAdminTokenUseCase getSpaceByAdminTokenUseCase,
+    GetSpacesByUserIdUseCase getSpacesByUserIdUseCase) : BaseController(logger)
 {
     [HttpGet("{token}")]
     public async Task<IActionResult> GetSpaceByPublicToken(Guid token)
@@ -50,4 +52,18 @@ public class SpaceController(
             return BadRequest(new ErrorResponse(exception.Message, StatusCodes.Status400BadRequest));
         }
     }
+
+    [Authorize]
+    [HttpGet("user-spaces")]
+    [ProducesResponseType(typeof(IEnumerable<SpaceResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSpacesByUser()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new ErrorResponse("User ID not found in token", StatusCodes.Status401Unauthorized));
+
+        return await Handle(() => getSpacesByUserIdUseCase.Execute(userId));
+    }
+
 }

@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using VibeSync.Application.Contracts.Authentication;
 using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.UseCases;
+using VibeSync.Infrastructure.Authentication;
 using VibeSync.Infrastructure.Repositories;
 
 namespace VibeSync.Infrastructure.Extensions;
@@ -24,6 +26,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<SuggestSongToSpaceUseCase>();
         services.AddScoped<GetSuggestionsUseCase>();
         services.AddScoped<RegisterUserUseCase>();
+        services.AddScoped<GetSpacesByUserIdUseCase>();
 
         return services;
     }
@@ -33,6 +36,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISpaceRepository, SpaceRepository>();
         services.AddScoped<ISuggestionRepository, SuggestionRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ITokenService, TokenService>();
 
         return services;
     }
