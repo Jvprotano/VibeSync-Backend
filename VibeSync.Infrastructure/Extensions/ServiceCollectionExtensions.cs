@@ -3,6 +3,7 @@ using VibeSync.Application.Contracts.Authentication;
 using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.UseCases;
 using VibeSync.Infrastructure.Authentication;
+using VibeSync.Infrastructure.Authentication.Services;
 using VibeSync.Infrastructure.Repositories;
 using VibeSync.Infrastructure.Services;
 
@@ -37,9 +38,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISpaceRepository, SpaceRepository>();
         services.AddScoped<ISuggestionRepository, SuggestionRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IAuthTokenService, AuthTokenService>();
         services.AddScoped<StripeService>();
-        
+
         return services;
     }
 }

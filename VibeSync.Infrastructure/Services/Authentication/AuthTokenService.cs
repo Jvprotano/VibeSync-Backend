@@ -9,14 +9,14 @@ using VibeSync.Application.Contracts.Authentication;
 using VibeSync.Domain.Domains;
 using VibeSync.Infrastructure.Context;
 
-namespace VibeSync.Infrastructure.Authentication;
+namespace VibeSync.Infrastructure.Authentication.Services;
 
-public class TokenService : ITokenService
+public class AuthTokenService : IAuthTokenService
 {
     private readonly IConfiguration _configuration;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public TokenService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
+    public AuthTokenService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
     {
         _configuration = configuration;
         _userManager = userManager;

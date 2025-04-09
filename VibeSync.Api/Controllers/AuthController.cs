@@ -15,13 +15,13 @@ public sealed class AuthController : BaseController
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly ITokenService _tokenService;
+    private readonly IAuthTokenService _tokenService;
 
     public AuthController(
         ILogger<AuthController> logger,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        ITokenService tokenService) : base(logger)
+        IAuthTokenService tokenService) : base(logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
