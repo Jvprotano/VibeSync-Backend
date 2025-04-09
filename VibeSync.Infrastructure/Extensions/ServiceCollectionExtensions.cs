@@ -4,6 +4,7 @@ using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.UseCases;
 using VibeSync.Infrastructure.Authentication;
 using VibeSync.Infrastructure.Repositories;
+using VibeSync.Infrastructure.Services;
 
 namespace VibeSync.Infrastructure.Extensions;
 
@@ -37,7 +38,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISuggestionRepository, SuggestionRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITokenService, TokenService>();
-
+        services.AddScoped<StripeService>();
+        
         return services;
     }
 }

@@ -80,6 +80,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 builder.Services.Configure<YouTubeSettings>(builder.Configuration.GetSection("YoutubeSettings"));
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+
 builder.Services.AddHttpClient<ISongIntegrationRepository, SongIntegrationRepository>();
 builder.Services.AddSingleton<SuggestionRateLimiter>();
 
