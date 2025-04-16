@@ -11,7 +11,7 @@ public class GetSuggestionsUseCase(ISuggestionRepository suggestionRepository, I
 {
     public async Task<IEnumerable<GetSuggestionsResponse>> Execute(GetSuggestionsRequest request)
     {
-        var space = await spaceRepository.GetSpaceByAdminTokenAsync(request.SpaceAdminToken) ?? throw new SpaceNotFoundException(request.SpaceAdminToken);
+        var space = await spaceRepository.GetByAdminTokenAsync(request.SpaceAdminToken) ?? throw new SpaceNotFoundException(request.SpaceAdminToken);
 
         var response = await suggestionRepository.GetSuggestions(space.Id, request.StartDateTime, request.EndDateTime, request.Amount);
 

@@ -7,7 +7,7 @@ namespace VibeSync.Infrastructure.Repositories;
 
 public class SuggestionRepository(AppDbContext appDbContext) : ISuggestionRepository
 {
-    public async Task<Suggestion> CreateSuggestion(Suggestion request)
+    public async Task<Suggestion> CreateAsync(Suggestion request)
     {
         await appDbContext.Suggestions.AddAsync(request);
         await appDbContext.SaveChangesAsync();

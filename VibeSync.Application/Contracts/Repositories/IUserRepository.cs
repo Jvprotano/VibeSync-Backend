@@ -7,5 +7,5 @@ public interface IUserRepository
     Task<User?> AddPartialUser(string userEmail);
     Task<bool> UserExistsAsync(string email);
     Task<User?> AddPasswordToUserAsync(string userId, string password);
-    Task<User?> GetUserByEmailAsync(string userEmail);
+    Task<User?> GetByEmailAsync(string userEmail);
 }

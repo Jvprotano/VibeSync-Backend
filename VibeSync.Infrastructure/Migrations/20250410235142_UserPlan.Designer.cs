@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VibeSync.Infrastructure.Context;
 
@@ -11,9 +12,11 @@ using VibeSync.Infrastructure.Context;
 namespace VibeSync.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250410235142_UserPlan")]
+    partial class UserPlan
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -161,6 +164,9 @@ namespace VibeSync.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("MaxSpaces")
                         .HasColumnType("int");
 
@@ -176,12 +182,13 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Plans", (string)null);
+                    b.ToTable("Plan");
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("0b4f8c3d-a685-4d45-9c0e-3f85bc56ec15"),
+                            CreatedAt = new DateTime(2025, 4, 10, 20, 51, 41, 236, DateTimeKind.Local).AddTicks(8126),
                             MaxSpaces = 1,
                             Name = "Free",
                             Price = 0m
@@ -189,6 +196,7 @@ namespace VibeSync.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("3da77f60-87c2-4f63-9fdc-e3d33b186d05"),
+                            CreatedAt = new DateTime(2025, 4, 10, 20, 51, 41, 238, DateTimeKind.Local).AddTicks(9116),
                             MaxSpaces = 5,
                             Name = "Basic",
                             Price = 29.99m,
@@ -197,6 +205,7 @@ namespace VibeSync.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("4d66ec50-fca2-4a18-972d-75683e9e2f14"),
+                            CreatedAt = new DateTime(2025, 4, 10, 20, 51, 41, 238, DateTimeKind.Local).AddTicks(9147),
                             MaxSpaces = 20,
                             Name = "Professional",
                             Price = 49.99m,
@@ -205,6 +214,7 @@ namespace VibeSync.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("692fa6dd-6ff1-4227-a49d-cff32643dcae"),
+                            CreatedAt = new DateTime(2025, 4, 10, 20, 51, 41, 238, DateTimeKind.Local).AddTicks(9152),
                             MaxSpaces = 2147483647,
                             Name = "Premium",
                             Price = 99.99m,
@@ -217,9 +227,6 @@ namespace VibeSync.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("CancelAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -254,7 +261,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserPlans", (string)null);
+                    b.ToTable("UserPlan");
                 });
 
             modelBuilder.Entity("VibeSync.Domain.Models.Space", b =>
@@ -291,7 +298,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Spaces", (string)null);
+                    b.ToTable("Spaces");
                 });
 
             modelBuilder.Entity("VibeSync.Domain.Models.Suggestion", b =>
@@ -317,7 +324,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("SpaceId");
 
-                    b.ToTable("Suggestions", (string)null);
+                    b.ToTable("Suggestions");
                 });
 
             modelBuilder.Entity("VibeSync.Infrastructure.Context.ApplicationUser", b =>

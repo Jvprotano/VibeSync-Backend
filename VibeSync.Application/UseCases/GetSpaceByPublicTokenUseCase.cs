@@ -10,7 +10,7 @@ public class GetSpaceByPublicTokenUseCase(ISpaceRepository spaceRepository) : IU
 {
     public async Task<GetPublicSpaceResponse> Execute(Guid publicToken)
     {
-        var response = await spaceRepository.GetSpaceByPublicTokenAsync(publicToken) ?? throw new SpaceNotFoundException(publicToken); ;
+        var response = await spaceRepository.GetByPublicTokenAsync(publicToken) ?? throw new SpaceNotFoundException(publicToken); ;
 
         return response.AsPublicResponseModel();
     }

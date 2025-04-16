@@ -19,7 +19,7 @@ public class CreateSpaceUseCase(ISpaceRepository spaceRepository, IUserRepositor
 
         await CheckUserSpaceLimit(userId);
 
-        var response = await spaceRepository.CreateSpaceAsync(request.AsDomain(userId));
+        var response = await spaceRepository.CreateAsync(request.AsDomain(userId));
 
         return response.AsResponseModel();
     }
@@ -35,7 +35,7 @@ public class CreateSpaceUseCase(ISpaceRepository spaceRepository, IUserRepositor
 
     private async Task<string> GetOrCreateUser(string userEmail)
     {
-        var user = await userRepository.GetUserByEmailAsync(userEmail)
+        var user = await userRepository.GetByEmailAsync(userEmail)
             ?? await userRepository.AddPartialUser(userEmail);
 
         if (string.IsNullOrEmpty(user?.Id))

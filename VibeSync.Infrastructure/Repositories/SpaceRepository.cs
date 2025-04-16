@@ -8,12 +8,12 @@ namespace VibeSync.Infrastructure.Repositories;
 
 public sealed class SpaceRepository(AppDbContext appDbContext) : ISpaceRepository
 {
-    public async Task<Space> GetSpaceByPublicTokenAsync(Guid guid)
+    public async Task<Space> GetByPublicTokenAsync(Guid guid)
     {
         return await appDbContext.Spaces
             .FirstAsync(c => guid.Equals(c.PublicToken));
     }
-    public async Task<Space> GetSpaceByAdminTokenAsync(Guid guid)
+    public async Task<Space> GetByAdminTokenAsync(Guid guid)
     {
         return await appDbContext.Spaces
             .FirstAsync(c => guid.Equals(c.AdminToken));
@@ -24,7 +24,7 @@ public sealed class SpaceRepository(AppDbContext appDbContext) : ISpaceRepositor
             .Where(c => c.UserId.Equals(userId))
             .ToListAsync();
     }
-    public async Task<Space> CreateSpaceAsync(Space space)
+    public async Task<Space> CreateAsync(Space space)
     {
         space.SetQrCode(QrCodeExtension.GenerateQrCode(space.Id.ToString()));
 

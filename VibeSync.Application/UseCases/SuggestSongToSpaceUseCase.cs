@@ -11,9 +11,9 @@ public class SuggestSongToSpaceUseCase(ISuggestionRepository suggestionRepositor
 {
     public async Task<SuggestionResponse> Execute(SuggestSongRequest request)
     {
-        var space = await spaceRepository.GetSpaceByPublicTokenAsync(request.spaceToken) ?? throw new SpaceNotFoundException(request.spaceToken);
+        var space = await spaceRepository.GetByPublicTokenAsync(request.spaceToken) ?? throw new SpaceNotFoundException(request.spaceToken);
 
-        var response = await suggestionRepository.CreateSuggestion(request.AsDomain(space.Id));
+        var response = await suggestionRepository.CreateAsync(request.AsDomain(space.Id));
 
         return response.AsResponseModel();
     }

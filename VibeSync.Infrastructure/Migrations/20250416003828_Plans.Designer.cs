@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VibeSync.Infrastructure.Context;
 
@@ -11,9 +12,11 @@ using VibeSync.Infrastructure.Context;
 namespace VibeSync.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250416003828_Plans")]
+    partial class Plans
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -176,7 +179,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Plans", (string)null);
+                    b.ToTable("Plans");
 
                     b.HasData(
                         new
@@ -254,7 +257,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserPlans", (string)null);
+                    b.ToTable("UserPlans");
                 });
 
             modelBuilder.Entity("VibeSync.Domain.Models.Space", b =>
@@ -291,7 +294,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Spaces", (string)null);
+                    b.ToTable("Spaces");
                 });
 
             modelBuilder.Entity("VibeSync.Domain.Models.Suggestion", b =>
@@ -317,7 +320,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("SpaceId");
 
-                    b.ToTable("Suggestions", (string)null);
+                    b.ToTable("Suggestions");
                 });
 
             modelBuilder.Entity("VibeSync.Infrastructure.Context.ApplicationUser", b =>

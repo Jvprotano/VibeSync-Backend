@@ -9,6 +9,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 {
     public DbSet<Space> Spaces { get; set; }
     public DbSet<Suggestion> Suggestions { get; set; }
+    public DbSet<UserPlan> UserPlans { get; set; }
+    public DbSet<Plan> Plans { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

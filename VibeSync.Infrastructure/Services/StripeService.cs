@@ -1,11 +1,12 @@
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
+using VibeSync.Application.Contracts.Services;
 using VibeSync.Application.Helpers;
 
 namespace VibeSync.Infrastructure.Services;
 
-public class StripeService
+public class StripeService : IStripeService
 {
     private readonly StripeSettings _settings;
 
@@ -15,7 +16,7 @@ public class StripeService
         StripeConfiguration.ApiKey = _settings.SecretKey;
     }
 
-    public async Task<Session> CreateCheckoutSessionAsync(string stripePriceId, Guid planId, string userId)
+    public async Task<string> CreateCheckoutSessionAsync(string stripePriceId, Guid planId, Guid userId)
     {
         var options = new SessionCreateOptions
         {
@@ -33,12 +34,13 @@ public class StripeService
             CancelUrl = $"http://localhost:4200/pricing",
             Metadata = new Dictionary<string, string>
             {
-                { "userId", userId },
+                { "userId", userId.ToString() },
                 { "planId", $"{planId}"}
             }
         };
 
         var service = new SessionService();
-        return await service.CreateAsync(options);
+        var session = await service.CreateAsync(options);
+        return session.Url;
     }
 }

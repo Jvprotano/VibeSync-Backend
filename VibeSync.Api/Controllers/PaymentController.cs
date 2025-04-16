@@ -4,29 +4,31 @@ using Microsoft.AspNetCore.Mvc;
 using Stripe;
 using Stripe.Checkout;
 using VibeSync.Api.Controllers.Base;
+using VibeSync.Application.Contracts.Repositories;
+using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
+using VibeSync.Application.UseCases;
 using VibeSync.Domain.Domains;
 using VibeSync.Infrastructure.Services;
 
 namespace VibeSync.Api.Controllers;
 
 [Route("api/[controller]")]
-public class PaymentController(ILogger<PaymentController> logger, StripeService stripeService) : BaseController(logger)
+public class PaymentController(
+    ILogger<PaymentController> logger,
+    IUserPlanRepository userPlanRepository,
+    CreateCheckoutSessionUseCase createCheckoutSessionUseCase) : BaseController(logger)
 {
-    [Authorize]
     [HttpPost("create-checkout-session")]
-    public async Task<IActionResult> CreateCheckoutSession()
+    [ProducesResponseType(typeof(CheckoutResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> CreateCheckoutSession([FromBody] CheckoutRequest request)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(userId))
             return Unauthorized(new ErrorResponse("User ID not found in token.", StatusCodes.Status401Unauthorized));
 
-        // var priceId = get from table plans
-
-        var session = await stripeService.CreateCheckoutSessionAsync("price_1RBlW7QTScSq3LFhzyNd64Ky", Guid.NewGuid(), userId);
-
-        return Ok(new { sessionId = session.Id, url = session.Url });
+        return await Handle(() => createCheckoutSessionUseCase.Execute(request with { UserId = Guid.Parse(userId) }));
     }
 
     [HttpPost("webhook")]
@@ -40,8 +42,6 @@ public class PaymentController(ILogger<PaymentController> logger, StripeService 
 
             if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
             {
-                // Criar assinatura e vincular ao usuário
-
                 var session = stripeEvent.Data.Object as Session;
 
                 var userId = session!.Metadata["userId"] ?? string.Empty;
@@ -52,7 +52,7 @@ public class PaymentController(ILogger<PaymentController> logger, StripeService 
                 var subscription = await subscriptionService.GetAsync(subscriptionId);
 
                 var userPlan = new UserPlan(
-                    new Guid(userId),
+                    userId,
                     subscription.CustomerId,
                     subscriptionId,
                     new Guid(planId),
@@ -60,20 +60,32 @@ public class PaymentController(ILogger<PaymentController> logger, StripeService 
                     subscription.StartDate.AddMonths(1),
                     true);
 
-
-                // Salve no banco de dados
+                await userPlanRepository.AddAsync(userPlan);
             }
-            if (stripeEvent.Type == EventTypes.InvoicePaid)
+            else if (stripeEvent.Type == EventTypes.InvoicePaid)
             {
-                // Fatura paga. Renovar assinatura. 
                 var invoice = stripeEvent.Data.Object as Invoice;
-                // Salve no banco de dados
+                var userPlan = await userPlanRepository.GetByUserIdAsync(invoice!.Metadata["userId"]);
+
+                userPlan!.Renew(userPlan.StripeSubscriptionId, DateTime.UtcNow.AddMonths(1));
+
+                await userPlanRepository.UpdateAsync(userPlan);
             }
             else if (stripeEvent.Type == EventTypes.InvoicePaymentFailed)
             {
                 var invoice = stripeEvent.Data.Object as Invoice;
-                // Then define and call a method to handle the successful payment intent.
-                // handleInvoicePaymentFailed(invoice);
+
+                var userPlan = await userPlanRepository.GetByUserIdAsync(invoice!.Metadata["userId"]);
+                userPlan!.Cancel();
+                await userPlanRepository.UpdateAsync(userPlan);
+            }
+            else if (stripeEvent.Type == EventTypes.CustomerSubscriptionDeleted)
+            {
+                var subscription = stripeEvent.Data.Object as Subscription;
+
+                var userPlan = await userPlanRepository.GetByUserIdAsync(subscription!.Metadata["userId"]);
+                userPlan!.Cancel();
+                await userPlanRepository.UpdateAsync(userPlan);
             }
             else if (stripeEvent.Type == EventTypes.InvoicePaymentSucceeded)
             {
@@ -87,13 +99,6 @@ public class PaymentController(ILogger<PaymentController> logger, StripeService 
                 var subscription = stripeEvent.Data.Object as Subscription;
                 // Then define and call a method to handle the successful payment intent.
                 // handleCustomerSubscriptionUpdated(subscription);
-            }
-            else if (stripeEvent.Type == EventTypes.CustomerSubscriptionDeleted)
-            {
-                // Cancelar assinatura do usuário
-                var subscription = stripeEvent.Data.Object as Subscription;
-                // Then define and call a method to handle the successful payment intent.
-                // handleCustomerSubscriptionDeleted(subscription);
             }
             else
             {

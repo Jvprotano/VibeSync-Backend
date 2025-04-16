@@ -13,7 +13,7 @@ public class RegisterUserUseCase(IUserRepository userRepository) : IUseCase<User
 {
     public async Task<UserResponse> Execute(UserRequest userRequest)
     {
-        var user = await userRepository.GetUserByEmailAsync(userRequest.Email) ?? throw new UserNotFoundException();
+        var user = await userRepository.GetByEmailAsync(userRequest.Email) ?? throw new UserNotFoundException();
 
         if (user.HasPassword)
             throw new UserAlreadyRegisteredException(userRequest.Email);

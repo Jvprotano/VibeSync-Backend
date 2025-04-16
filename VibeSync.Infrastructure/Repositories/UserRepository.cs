@@ -15,7 +15,7 @@ public class UserRepository(AppDbContext appDbContext, UserManager<ApplicationUs
         if (!result.Succeeded)
             return null;
 
-        return await GetUserByEmailAsync(userEmail);
+        return await GetByEmailAsync(userEmail);
     }
 
     public async Task<User?> AddPasswordToUserAsync(string userId, string password)
@@ -38,7 +38,7 @@ public class UserRepository(AppDbContext appDbContext, UserManager<ApplicationUs
         return await appDbContext.Users.AnyAsync(user => user.Email == email);
     }
 
-    public async Task<User?> GetUserByEmailAsync(string userEmail)
+    public async Task<User?> GetByEmailAsync(string userEmail)
     {
         var appUser = await GetApplicationUserByEmailAsync(userEmail);
 

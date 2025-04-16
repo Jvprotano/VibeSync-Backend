@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using VibeSync.Application.Contracts.Authentication;
 using VibeSync.Application.Contracts.Repositories;
+using VibeSync.Application.Contracts.Services;
 using VibeSync.Application.UseCases;
 using VibeSync.Infrastructure.Authentication;
 using VibeSync.Infrastructure.Authentication.Services;
@@ -29,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<GetSuggestionsUseCase>();
         services.AddScoped<RegisterUserUseCase>();
         services.AddScoped<GetSpacesByUserIdUseCase>();
+        services.AddScoped<CreateCheckoutSessionUseCase>();
 
         return services;
     }
@@ -38,8 +40,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISpaceRepository, SpaceRepository>();
         services.AddScoped<ISuggestionRepository, SuggestionRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserPlanRepository, UserPlanRepository>();
+        services.AddScoped<IPlanRepository, PlanRepository>();
         services.AddScoped<IAuthTokenService, AuthTokenService>();
-        services.AddScoped<StripeService>();
+        services.AddScoped<IStripeService, StripeService>();
 
         return services;
     }
