@@ -18,5 +18,5 @@ public class User
     public string Email { get; private set; }
     private string? Password { get; set; } = null;
 
-    public bool HasPassword => !string.IsNullOrEmpty(Password);
+    public bool HasPassword => !string.IsNullOrWhiteSpace(Password);
 }

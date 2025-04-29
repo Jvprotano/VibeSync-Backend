@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using VibeSync.Application.Exceptions.Base;
 using VibeSync.Application.Responses;
@@ -23,5 +24,15 @@ public abstract class BaseController(ILogger logger) : ControllerBase
             logger.LogError(ex, ex.Message);
             return BadRequest(new ErrorResponse(ex.Message, StatusCodes.Status400BadRequest, ex.InnerException?.Message, ex.GetType().Name));
         }
+    }
+
+    protected string? GetUserId()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+            return null;
+
+        return userId;
     }
 }

@@ -1,6 +1,5 @@
-using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using FluentValidation;
 using VibeSync.Api.Controllers.Base;
 using VibeSync.Application.Requests;
@@ -11,7 +10,10 @@ namespace VibeSync.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserController(ILogger<UserController> logger, RegisterUserUseCase registerUserUseCase) : BaseController(logger)
+public class UserController(
+    ILogger<UserController> logger,
+    RegisterUserUseCase registerUserUseCase,
+    GetUserUseCase getUserUseCase) : BaseController(logger)
 {
     [HttpPost("complete-registration")]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
@@ -32,5 +34,19 @@ public class UserController(ILogger<UserController> logger, RegisterUserUseCase 
             logger.LogError(ex, "An error occurred while registering user.");
             return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse("An unexpected error occurred."));
         }
+    }
+
+    [HttpGet]
+    [Authorize]
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Get()
+    {
+        var userId = GetUserId();
+
+        if (userId is null)
+            return Unauthorized(new ErrorResponse("User ID is missing.", StatusCodes.Status401Unauthorized));
+
+        return await Handle(() => getUserUseCase.Execute(userId));
     }
 }

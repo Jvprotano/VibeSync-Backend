@@ -1,6 +1,9 @@
+using Moq;
+using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
+using VibeSync.Domain.Domains;
 using VibeSync.Domain.Exceptions;
 using VibeSync.Infrastructure.Repositories;
 using VibeSync.Tests.Support;
@@ -16,9 +19,27 @@ namespace VibeSync.Tests.Application
         public SpaceUseCaseTests()
         {
             var spaceRepository = new SpaceRepository(_context);
-            var userRepository = new UserRepository(_context, null!);
+            // var userRepository = new UserRepository(_context, null!);
+            var userRepositoryMock = new Mock<IUserRepository>();
 
-            _createSpaceUseCase = new CreateSpaceUseCase(spaceRepository, userRepository);
+            userRepositoryMock.Setup(x => x.GetByEmailAsync(It.IsAny<string>()))
+                .ReturnsAsync(new User(Guid.NewGuid().ToString(), "TestUser", "", ""));
+
+            // var userPlanRepository = new UserPlanRepository(_context);
+            var userPlanRepositoryMock = new Mock<IUserPlanRepository>();
+
+            // userPlanRepositoryMock.Setup(x => x.GetByUserIdAsync(It.IsAny<string>(), default))
+            //     .ReturnsAsync(new UserPlan(Guid.NewGuid().ToString(), Guid.NewGuid(), DateTime.Now, null, null, null, true));
+
+            userPlanRepositoryMock.Setup(x => x.GetByUserIdAsync(It.IsAny<string>(), default))
+                .ReturnsAsync(new UserPlan(Guid.NewGuid().ToString(), Guid.NewGuid(), DateTime.Now, null, null, null, true)
+                {
+                    Plan = new Plan(Guid.NewGuid(), "Basic Plan", 3, 0)
+                });
+
+            var planRepository = new PlanRepository(_context);
+
+            _createSpaceUseCase = new CreateSpaceUseCase(spaceRepository, userRepositoryMock.Object, userPlanRepositoryMock.Object, planRepository);
             _getSpaceByAdminTokenUseCase = new GetSpaceByAdminTokenUseCase(spaceRepository);
         }
 
@@ -34,21 +55,18 @@ namespace VibeSync.Tests.Application
             var createdSpace = await _createSpaceUseCase.Execute(
                 new CreateSpaceRequest(DEFAULT_SPACE_NAME, DEFAULT_USER_EMAIL, DateTime.Now));
 
-            var publicToken = createdSpace.PublicToken;
-            var adminToken = createdSpace.AdminToken;
-
             var expected = new SpaceResponse(
-                publicToken,
-                adminToken,
+                createdSpace.AdminToken,
+                createdSpace.PublicToken,
                 DEFAULT_SPACE_NAME,
-                $"{DEFAULT_URL}{publicToken}",
+                $"{DEFAULT_URL}{createdSpace.PublicToken}",
                 "Fake Qr Code"
             );
 
             expected = expected with { QrCode = createdSpace.QrCode };
 
             // Act    
-            var actual = await _getSpaceByAdminTokenUseCase.Execute(publicToken);
+            var actual = await _getSpaceByAdminTokenUseCase.Execute(createdSpace.AdminToken);
 
             // Assert
             Assert.Equal(expected, actual);

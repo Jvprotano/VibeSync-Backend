@@ -5,6 +5,10 @@ namespace VibeSync.Application.Extensions;
 
 public static class UserExtension
 {
-    public static UserResponse AsResponseModel(this User user)
-        => new UserResponse(user.Name, user.Email, Guid.Parse(user.Id));
+    public static UserResponse AsResponseModel(this User user, string? planName = null)
+        => new UserResponse(
+            user.Name,
+            user.Email,
+            Guid.Parse(user.Id),
+            planName);
 }

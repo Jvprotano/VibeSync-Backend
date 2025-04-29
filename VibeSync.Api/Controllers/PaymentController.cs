@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
 using Stripe.Checkout;
@@ -9,7 +7,6 @@ using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
 using VibeSync.Domain.Domains;
-using VibeSync.Infrastructure.Services;
 
 namespace VibeSync.Api.Controllers;
 
@@ -23,9 +20,9 @@ public class PaymentController(
     [ProducesResponseType(typeof(CheckoutResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateCheckoutSession([FromBody] CheckoutRequest request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetUserId();
 
-        if (string.IsNullOrEmpty(userId))
+        if (userId is null)
             return Unauthorized(new ErrorResponse("User ID not found in token.", StatusCodes.Status401Unauthorized));
 
         return await Handle(() => createCheckoutSessionUseCase.Execute(request with { UserId = Guid.Parse(userId) }));
@@ -53,12 +50,11 @@ public class PaymentController(
 
                 var userPlan = new UserPlan(
                     userId,
-                    subscription.CustomerId,
-                    subscriptionId,
                     new Guid(planId),
                     subscription.StartDate,
                     subscription.StartDate.AddMonths(1),
-                    true);
+                    subscription.CustomerId,
+                    subscriptionId);
 
                 await userPlanRepository.AddAsync(userPlan);
             }
@@ -67,7 +63,10 @@ public class PaymentController(
                 var invoice = stripeEvent.Data.Object as Invoice;
                 var userPlan = await userPlanRepository.GetByUserIdAsync(invoice!.Metadata["userId"]);
 
-                userPlan!.Renew(userPlan.StripeSubscriptionId, DateTime.UtcNow.AddMonths(1));
+                if (userPlan is null)
+                    return BadRequest(new ErrorResponse("User plan not found.", StatusCodes.Status400BadRequest));
+
+                userPlan.Renew(userPlan.StripeSubscriptionId!, DateTime.UtcNow.AddMonths(1));
 
                 await userPlanRepository.UpdateAsync(userPlan);
             }

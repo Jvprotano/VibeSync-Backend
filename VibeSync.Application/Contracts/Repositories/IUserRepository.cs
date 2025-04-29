@@ -8,4 +8,5 @@ public interface IUserRepository
     Task<bool> UserExistsAsync(string email);
     Task<User?> AddPasswordToUserAsync(string userId, string password);
     Task<User?> GetByEmailAsync(string userEmail);
+    Task<User?> GetByIdAsync(string userId);
 }

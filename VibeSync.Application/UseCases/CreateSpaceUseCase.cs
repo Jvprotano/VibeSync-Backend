@@ -6,10 +6,15 @@ using VibeSync.Application.Extensions;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.Validators;
+using VibeSync.Domain.Domains;
 
 namespace VibeSync.Application.UseCases;
 
-public class CreateSpaceUseCase(ISpaceRepository spaceRepository, IUserRepository userRepository) : IUseCase<CreateSpaceRequest, SpaceResponse>
+public class CreateSpaceUseCase(
+    ISpaceRepository spaceRepository,
+    IUserRepository userRepository,
+    IUserPlanRepository userPlanRepository,
+    IPlanRepository planRepository) : IUseCase<CreateSpaceRequest, SpaceResponse>
 {
     public async Task<SpaceResponse> Execute(CreateSpaceRequest request)
     {
@@ -33,10 +38,23 @@ public class CreateSpaceUseCase(ISpaceRepository spaceRepository, IUserRepositor
             throw new ValidationException(validationResult.Errors);
     }
 
+    private async Task CheckUserSpaceLimit(string userId)
+    {
+        var userPlan = await userPlanRepository.GetByUserIdAsync(userId);
+
+        if (userPlan is null)
+            throw new CreateUserException("User plan not found.");
+
+        var userSpaces = await spaceRepository.GetSpacesByUserIdAsync(userId);
+
+        if (userPlan.ReachedMaxSpaces(userSpaces))
+            throw new SpacesPerUserLimitException("User has reached the maximum number of spaces allowed.");
+    }
+
     private async Task<string> GetOrCreateUser(string userEmail)
     {
         var user = await userRepository.GetByEmailAsync(userEmail)
-            ?? await userRepository.AddPartialUser(userEmail);
+            ?? await CreatePartialUser(userEmail);
 
         if (string.IsNullOrEmpty(user?.Id))
             throw new CreateUserException("Error creating partial user.");
@@ -44,9 +62,22 @@ public class CreateSpaceUseCase(ISpaceRepository spaceRepository, IUserRepositor
         return user.Id;
     }
 
-    private async Task CheckUserSpaceLimit(string userId)
+    private async Task<User> CreatePartialUser(string userEmail)
     {
-        if ((await spaceRepository.GetSpacesByUserIdAsync(userId)).Any())
-            throw new SpacesPerUserLimitException("User already has a space.");
+        var user = await userRepository.AddPartialUser(userEmail);
+
+        if (string.IsNullOrEmpty(user?.Id))
+            throw new CreateUserException("Error creating partial user.");
+
+        await LinkToFreePlan(user.Id);
+
+        return user;
+    }
+
+    private async Task LinkToFreePlan(string userId)
+    {
+        var freePlanId = await planRepository.GetFreePlanIdAsync();
+        var userPlan = new UserPlan(userId, freePlanId, DateTime.UtcNow, DateTime.UtcNow.AddDays(7));
+        await userPlanRepository.AddAsync(userPlan);
     }
 }

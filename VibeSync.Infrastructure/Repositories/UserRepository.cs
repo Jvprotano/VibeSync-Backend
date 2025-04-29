@@ -48,6 +48,16 @@ public class UserRepository(AppDbContext appDbContext, UserManager<ApplicationUs
         return new User(appUser.Id, appUser.UserName!, appUser.Email!, appUser.PasswordHash);
     }
 
+    public async Task<User?> GetByIdAsync(string userId)
+    {
+        var appUser = await userManager.FindByIdAsync(userId);
+
+        if (appUser == null)
+            return null;
+
+        return new User(appUser.Id, appUser.UserName!, appUser.Email!, appUser.PasswordHash);
+    }
+
     private async Task<ApplicationUser?> GetApplicationUserByEmailAsync(string email)
     {
         return await userManager.FindByEmailAsync(email);

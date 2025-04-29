@@ -3,7 +3,6 @@ using VibeSync.Application.Contracts.Authentication;
 using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.Contracts.Services;
 using VibeSync.Application.UseCases;
-using VibeSync.Infrastructure.Authentication;
 using VibeSync.Infrastructure.Authentication.Services;
 using VibeSync.Infrastructure.Repositories;
 using VibeSync.Infrastructure.Services;
@@ -31,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RegisterUserUseCase>();
         services.AddScoped<GetSpacesByUserIdUseCase>();
         services.AddScoped<CreateCheckoutSessionUseCase>();
+        services.AddScoped<GetUserUseCase>();
 
         return services;
     }

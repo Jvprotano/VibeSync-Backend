@@ -7,21 +7,27 @@ namespace VibeSync.Infrastructure.Repositories;
 
 public class UserPlanRepository(AppDbContext appDbContext) : IUserPlanRepository
 {
+    private DbSet<UserPlan> DbSet => appDbContext.UserPlans;
+
     public async Task<UserPlan> AddAsync(UserPlan userPlan, CancellationToken cancellationToken = default)
     {
-        await appDbContext.UserPlans.AddAsync(userPlan, cancellationToken);
+        await DbSet.AddAsync(userPlan, cancellationToken);
         await appDbContext.SaveChangesAsync(cancellationToken);
         return userPlan;
     }
 
     public async Task<UserPlan?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
     {
-        return await appDbContext.UserPlans.FirstOrDefaultAsync(up => up.UserId == userId, cancellationToken);
+        return await DbSet
+            .Where(userPlan => userPlan.UserId == userId)
+            .Include(userPlan => userPlan.Plan)
+            .OrderByDescending(userPlan => userPlan.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<UserPlan> UpdateAsync(UserPlan userPlan)
     {
-        appDbContext.UserPlans.Update(userPlan);
+        DbSet.Update(userPlan);
         await appDbContext.SaveChangesAsync();
         return userPlan;
     }

@@ -4,7 +4,7 @@ namespace VibeSync.Domain.Domains;
 
 public class UserPlan : BaseEntity
 {
-    public UserPlan(string userId, string stripeCustomerId, string stripeSubscriptionId, Guid planId, DateTime startDate, DateTime? currentPeriodEnd, bool isActive)
+    public UserPlan(string userId, Guid planId, DateTime startDate, DateTime? currentPeriodEnd, string? stripeCustomerId = null, string? stripeSubscriptionId = null, bool isActive = true)
     {
         UserId = userId;
         StripeCustomerId = stripeCustomerId;
@@ -16,9 +16,9 @@ public class UserPlan : BaseEntity
     }
 
     public string UserId { get; private set; }
-    public string StripeCustomerId { get; private set; }
-    public string StripeSubscriptionId { get; private set; }
-    public Plan? Plan { get; private set; }
+    public string? StripeCustomerId { get; private set; }
+    public string? StripeSubscriptionId { get; private set; }
+    public Plan? Plan { get; set; }
     public Guid PlanId { get; private set; }
     public DateTime StartDate { get; private set; }
     public DateTime? CurrentPeriodEnd { get; private set; }
@@ -31,9 +31,18 @@ public class UserPlan : BaseEntity
         CurrentPeriodEnd = currentPeriodEnd;
         IsActive = true;
     }
+
     public void Cancel()
     {
         IsActive = false;
         CancelAt = DateTime.UtcNow;
+    }
+
+    public bool ReachedMaxSpaces(IEnumerable<Space> userSpaces)
+    {
+        if (Plan == null)
+            return false;
+
+        return userSpaces.Count() >= Plan?.MaxSpaces;
     }
 }

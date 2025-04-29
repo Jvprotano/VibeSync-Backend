@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VibeSync.Api.Controllers.Base;
@@ -30,7 +29,6 @@ public class SpaceController(
 
     [HttpPost]
     [ProducesResponseType(typeof(SpaceResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> CreateSpace([FromBody] CreateSpaceRequest payload)
@@ -58,12 +56,11 @@ public class SpaceController(
     [ProducesResponseType(typeof(IEnumerable<SpaceResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSpacesByUser()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetUserId();
 
-        if (string.IsNullOrEmpty(userId))
+        if (userId is null)
             return Unauthorized(new ErrorResponse("User ID not found in token", StatusCodes.Status401Unauthorized));
 
         return await Handle(() => getSpacesByUserIdUseCase.Execute(userId));
     }
-
 }

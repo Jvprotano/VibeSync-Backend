@@ -1,0 +1,64 @@
+using VibeSync.Domain.Domains;
+using VibeSync.Domain.Models;
+
+namespace VibeSync.Tests.Domain;
+
+public class UserPlanTests
+{
+    private readonly UserPlan _userPlan = new("userId", Guid.NewGuid(), DateTime.UtcNow, null, null, null, true);
+
+    [Fact]
+    public void ReachedMaxSpaces_ShouldReturnTrue_WhenUserHasReachedMaxSpaces()
+    {
+        // Arrange
+        var spaces = new List<Space>
+        {
+            new ("space1", "userId"),
+            new ("space2", "userId"),
+            new ("space3", "userId")
+        };
+        _userPlan.Plan = new Plan(Guid.NewGuid(), "Basic Plan", 3, 0);
+
+        // Act
+        var result = _userPlan.ReachedMaxSpaces(spaces);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void ReachedMaxSpaces_ShouldReturnFalse_WhenUserHasNotReachedMaxSpaces()
+    {
+        // Arrange
+        var spaces = new List<Space>
+        {
+            new ("space1", "userId"),
+            new ("space2", "userId")
+        };
+        _userPlan.Plan = new Plan(Guid.NewGuid(), "Basic Plan", 3, 0);
+
+        // Act
+        var result = _userPlan.ReachedMaxSpaces(spaces);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void ReachedMaxSpaces_ShouldReturnFalse_WhenPlanIsNull()
+    {
+        // Arrange
+        var spaces = new List<Space>
+        {
+            new ("space1", "userId"),
+            new ("space2", "userId")
+        };
+        _userPlan.Plan = null;
+
+        // Act
+        var result = _userPlan.ReachedMaxSpaces(spaces);
+
+        // Assert
+        Assert.False(result);
+    }
+}

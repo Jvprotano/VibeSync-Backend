@@ -20,7 +20,7 @@ public static class SpaceExtension
             space.AdminToken,
             space.PublicToken,
             space.Name,
-            $"https://www.google.com/search?q={space.Id}",
+            $"https://www.google.com/search?q={space.PublicToken}",
             space.QrCode
         );
     }

@@ -4,8 +4,8 @@ namespace VibeSync.Application.Contracts.Repositories;
 
 public interface ISpaceRepository
 {
-    Task<Space> GetByPublicTokenAsync(Guid token);
-    Task<Space> GetByAdminTokenAsync(Guid token);
+    Task<Space?> GetByPublicTokenAsync(Guid token);
+    Task<Space?> GetByAdminTokenAsync(Guid token);
     Task<IEnumerable<Space>> GetSpacesByUserIdAsync(string userId);
     Task<Space> CreateAsync(Space space);
 }
