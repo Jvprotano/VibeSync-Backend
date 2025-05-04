@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using FluentValidation;
 using VibeSync.Application.Exceptions.Base;
 using VibeSync.Application.Responses;
 
@@ -19,6 +20,16 @@ public abstract class BaseController(ILogger logger) : ControllerBase
             logger.LogError(ex, ex.Message);
             return NotFound(new ErrorResponse(ex.Message, StatusCodes.Status404NotFound, ex.InnerException?.Message, ex.GetType().Name));
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogError(ex, ex.Message);
+            return Unauthorized(new ErrorResponse(ex.Message, StatusCodes.Status401Unauthorized, ex.InnerException?.Message, ex.GetType().Name));
+        }
+        catch (ValidationException ex)
+        {
+            logger.LogError(ex, ex.Message);
+            return BadRequest(new ErrorResponse(ex.Message, StatusCodes.Status400BadRequest, ex.InnerException?.Message, ex.GetType().Name));
+        }
         catch (BadRequestException ex)
         {
             logger.LogError(ex, ex.Message);
@@ -34,5 +45,15 @@ public abstract class BaseController(ILogger logger) : ControllerBase
             return null;
 
         return userId;
+    }
+
+    protected string? GetUserEmail()
+    {
+        var userEmail = User.FindFirstValue(ClaimTypes.Email);
+
+        if (string.IsNullOrEmpty(userEmail))
+            return null;
+
+        return userEmail;
     }
 }

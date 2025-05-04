@@ -20,7 +20,7 @@ public class CreateSpaceUseCase(
     {
         await Validate(request);
 
-        var userId = await GetOrCreateUser(request.UserEmail);
+        var userId = await GetOrCreateUser(request.UserEmail!);
 
         await CheckUserSpaceLimit(userId);
 

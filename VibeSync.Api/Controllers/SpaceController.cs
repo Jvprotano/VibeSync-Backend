@@ -35,6 +35,11 @@ public class SpaceController(
     {
         try
         {
+            var loggedUserEmail = GetUserEmail();
+
+            if (!string.IsNullOrEmpty(loggedUserEmail))
+                payload = payload with { UserEmail = loggedUserEmail };
+
             return await Handle(() => createSpaceUseCase.Execute(payload));
         }
         catch (SpacesPerUserLimitException exception)
