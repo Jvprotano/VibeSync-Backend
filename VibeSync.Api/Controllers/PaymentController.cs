@@ -1,32 +1,15 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-
-// Adicionar para IConfigurationusing Microsoft.Extensions.Logging;
 using Stripe;
 using Stripe.Checkout;
-
-// Para Sessionusing VibeSync.Api.Controllers.Base;
-using VibeSync.Application.Contracts.Repositories;
-using VibeSync.Application.Requests;
-
-// Para CheckoutRequestusing VibeSync.Application.Responses;
-
-// Para CheckoutResponse e ErrorResponseusing VibeSync.Application.UseCases;
-using VibeSync.Domain.Domains;
-
-// Para UserPlanusing System;
-
-// Para Guid, DateTimeusing System.IO;
-
-// Para StreamReaderusing System.Threading.Tasks;
-
-// Para Taskusing System.Linq;
-using System.Text.Json;
 using VibeSync.Api.Controllers.Base;
+using VibeSync.Application.Contracts.Repositories;
+using VibeSync.Application.Extensions;
+using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
-
-// Para FirstOrDefault
+using VibeSync.Domain.Domains;
+using VibeSync.Domain.Enums;
 
 namespace VibeSync.Api.Controllers;
 
@@ -58,7 +41,6 @@ public class PaymentController : BaseController
         }
     }
 
-    // --- Endpoint Create Checkout Session (Mantido como antes) ---
     [HttpPost("create-checkout-session")]
     [ProducesResponseType(typeof(CheckoutResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -69,11 +51,9 @@ public class PaymentController : BaseController
         if (userId is null)
             return Unauthorized(new ErrorResponse("User ID não encontrado no token.", StatusCodes.Status401Unauthorized));
 
-        // GARANTIR que o UseCase adicione userId e planId aos Metadata do Stripe Session!
         return await Handle(() => _createCheckoutSessionUseCase.Execute(request with { UserId = Guid.Parse(userId) }));
     }
 
-    // --- Endpoint do Webhook Stripe (Simplificado) ---
     [HttpPost("webhook")]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -86,9 +66,10 @@ public class PaymentController : BaseController
 
         try
         {
-            // --- 1. Verificação da Assinatura ---
             var signatureHeader = Request.Headers["Stripe-Signature"];
-            stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, _webhookSecret);
+            // stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, _webhookSecret);
+            stripeEvent = EventUtility.ParseEvent(json);
+
             _logger.LogInformation("Stripe Event Received: Id={EventId}, Type={EventType}", stripeEvent.Id, stripeEvent.Type);
         }
         catch (JsonException e)
@@ -107,34 +88,27 @@ public class PaymentController : BaseController
             return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse("Erro interno inesperado ao processar webhook.", StatusCodes.Status500InternalServerError));
         }
 
-        // --- 2. Processar Apenas os Eventos Essenciais ---
         try
         {
             Task processingTask = stripeEvent.Type switch
             {
-                // Essenciais:
                 EventTypes.CheckoutSessionCompleted => HandleCheckoutSessionCompletedAsync(stripeEvent),
                 EventTypes.InvoicePaid => HandleInvoicePaidAsync(stripeEvent),
                 EventTypes.InvoicePaymentFailed => HandleInvoicePaymentFailedAsync(stripeEvent),
                 EventTypes.CustomerSubscriptionUpdated => HandleSubscriptionUpdatedAsync(stripeEvent),
                 EventTypes.CustomerSubscriptionDeleted => HandleSubscriptionDeletedAsync(stripeEvent),
 
-                // Ignorar outros eventos:
-                _ => HandleUnknownEvent(stripeEvent) // Apenas loga
+                _ => HandleUnknownEvent(stripeEvent)
             };
             await processingTask;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Webhook Stripe: Erro interno ao processar o evento Type={EventType}, Id={EventId}.", stripeEvent.Type, stripeEvent.Id);
-            // Não retorna erro para o Stripe, apenas loga internamente.
         }
 
-        // --- 3. Retornar Ok (200) para o Stripe ---
         return Ok();
     }
-
-    // --- Métodos Privados para Tratar cada Evento Essencial ---
 
     // HandleCheckoutSessionCompletedAsync: Cria o registro inicial UserPlan
     private async Task HandleCheckoutSessionCompletedAsync(Event stripeEvent)
@@ -145,7 +119,6 @@ public class PaymentController : BaseController
         var stripeSubscriptionId = session.SubscriptionId;
         var stripeCustomerId = session.CustomerId;
 
-        // Recuperar metadados (userId, planId) - CRUCIAL
         if (!session.Metadata.TryGetValue("userId", out var userIdStr) || string.IsNullOrEmpty(userIdStr) ||
             !session.Metadata.TryGetValue("planId", out var planIdStr) || !Guid.TryParse(planIdStr, out var planId))
         {
@@ -153,7 +126,6 @@ public class PaymentController : BaseController
             return;
         }
 
-        // Idempotência
         if (await _userPlanRepository.GetByStripeSubscriptionIdAsync(stripeSubscriptionId) != null)
         {
             _logger.LogWarning("UserPlan para {SubscriptionId} já existe. Ignorando {EventType} (Id: {EventId})", stripeSubscriptionId, stripeEvent.Type, stripeEvent.Id);
@@ -174,9 +146,10 @@ public class PaymentController : BaseController
             return; // Não criar UserPlan sem dados da Subscription
         }
 
-        // Criar UserPlan
-        var userPlan = new UserPlan(userIdStr, planId, subscription.StartDate, subscription.CurrentPeriodEnd,
-                                    stripeCustomerId, stripeSubscriptionId, ConvertStripeSubscriptionStatus(subscription.Status));
+        var currentPeriodEnd = subscription.Items.Data.FirstOrDefault()?.CurrentPeriodEnd;
+
+        var userPlan = new UserPlan(userIdStr, planId, subscription.StartDate, currentPeriodEnd,
+                                    stripeCustomerId, stripeSubscriptionId, StripeExtension.ConvertStripeSubscriptionStatus(subscription.Status));
         await _userPlanRepository.AddAsync(userPlan);
         _logger.LogInformation("UserPlan criado (Status: {Status}) para UserId {UserId}, PlanId {PlanId}, SubId {SubId}, Evento {EventId}",
             userPlan.Status, userPlan.UserId, userPlan.PlanId, userPlan.StripeSubscriptionId, stripeEvent.Id);
@@ -186,12 +159,15 @@ public class PaymentController : BaseController
     private async Task HandleInvoicePaidAsync(Event stripeEvent)
     {
         if (stripeEvent.Data.Object is not Invoice invoice) { /* Log e return */ return; }
-        if (string.IsNullOrEmpty(invoice.SubscriptionId) || invoice.Status != "paid") { /* Log informativo e return */ return; }
 
-        var stripeSubscriptionId = invoice.SubscriptionId;
+        var stripeSubscriptionId = invoice.Lines?.Data
+                                             .Select(line => line.SubscriptionId)
+                                             .FirstOrDefault(subId => !string.IsNullOrEmpty(subId));
+
+        if (string.IsNullOrEmpty(stripeSubscriptionId) || invoice.Status != "paid") { /* Log informativo e return */ return; }
+
         var userPlan = await _userPlanRepository.GetByStripeSubscriptionIdAsync(stripeSubscriptionId);
 
-        // Recuperação se não encontrado
         if (userPlan == null)
         {
             _logger.LogWarning("UserPlan não encontrado para {SubscriptionId} em {EventType} (Id: {EventId}). Tentando recuperação...", stripeSubscriptionId, stripeEvent.Type, stripeEvent.Id);
@@ -219,8 +195,8 @@ public class PaymentController : BaseController
         }
 
         // Atualizar UserPlan
-        userPlan.Status = ConvertStripeSubscriptionStatus(subscription.Status); // Deve ser 'Active'
-        userPlan.CurrentPeriodEnd = subscription.CurrentPeriodEnd;
+        var currentPeriodEnd = subscription.Items.Data.FirstOrDefault()?.CurrentPeriodEnd;
+        userPlan.Renew(currentPeriodEnd ?? default, StripeExtension.ConvertStripeSubscriptionStatus(subscription.Status));
 
         await _userPlanRepository.UpdateAsync(userPlan);
         _logger.LogInformation("UserPlan atualizado (Status: {Status}, PeriodEnd: {PeriodEnd}) para SubId {SubId}, Evento {EventId}",
@@ -229,32 +205,34 @@ public class PaymentController : BaseController
         // TODO: Lógica de negócio adicional (liberar acesso, email, etc.)
     }
 
-    // HandleInvoicePaymentFailedAsync: Marca o plano com status apropriado (PastDue, PaymentFailed)
     private async Task HandleInvoicePaymentFailedAsync(Event stripeEvent)
     {
         if (stripeEvent.Data.Object is not Invoice invoice) { /* Log e return */ return; }
-        if (string.IsNullOrEmpty(invoice.SubscriptionId)) { /* Log informativo e return */ return; }
 
-        var stripeSubscriptionId = invoice.SubscriptionId;
+        var stripeSubscriptionId = invoice.Lines?.Data
+                                     .Select(line => line.SubscriptionId)
+                                     .FirstOrDefault(subId => !string.IsNullOrEmpty(subId));
+
+        if (string.IsNullOrEmpty(stripeSubscriptionId)) { /* Log informativo e return */ return; }
+
         var userPlan = await _userPlanRepository.GetByStripeSubscriptionIdAsync(stripeSubscriptionId);
 
         if (userPlan == null) { /* Log warning e return (recuperação opcional) */ return; }
 
-        // Obter status atual da Subscription para refletir (PastDue, Unpaid?)
-        string newStatus;
+        SubscriptionStatusEnum newStatus;
         try
         {
             var subService = new SubscriptionService();
             var sub = await subService.GetAsync(stripeSubscriptionId);
-            newStatus = ConvertStripeSubscriptionStatus(sub?.Status ?? "Unknown");
+            newStatus = StripeExtension.ConvertStripeSubscriptionStatus(sub?.Status ?? "Unknown");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Falha obter status Subscription {SubscriptionId} em {EventType}. Usando 'PaymentFailed'.", stripeSubscriptionId, stripeEvent.Type);
-            newStatus = "PaymentFailed";
+            newStatus = SubscriptionStatusEnum.PaymentFailed; // Fallback
         }
 
-        userPlan.Status = newStatus;
+        userPlan.UpdateStatus(newStatus);
         await _userPlanRepository.UpdateAsync(userPlan);
         _logger.LogInformation("UserPlan atualizado (Status: {Status}) para SubId {SubId} devido a {EventType} (Id: {EventId})",
             userPlan.Status, userPlan.StripeSubscriptionId, stripeEvent.Type, stripeEvent.Id);
@@ -262,7 +240,6 @@ public class PaymentController : BaseController
         // TODO: Lógica de notificação ao usuário / período de carência?
     }
 
-    // HandleSubscriptionUpdatedAsync: Sincroniza status e data fim do período. Opcional: lida com mudança de plano.
     private async Task HandleSubscriptionUpdatedAsync(Event stripeEvent)
     {
         if (stripeEvent.Data.Object is not Subscription subscription) { /* Log e return */ return; }
@@ -286,14 +263,12 @@ public class PaymentController : BaseController
         var oldStatus = userPlan.Status;
         var oldPeriodEnd = userPlan.CurrentPeriodEnd;
 
-        // Atualizar Status e CurrentPeriodEnd
-        userPlan.Status = ConvertStripeSubscriptionStatus(subscription.Status);
-        userPlan.CurrentPeriodEnd = subscription.CurrentPeriodEnd;
+        var currentPeriodEnd = subscription.Items.Data.FirstOrDefault()?.CurrentPeriodEnd;
+        userPlan.Renew(currentPeriodEnd ?? default, StripeExtension.ConvertStripeSubscriptionStatus(subscription.Status));
 
         // Simplificado: não inclui lógica de mudança de plano aqui, mas pode ser adicionada se necessário
         // verificando subscription.Items.Data[0].Price.Id
 
-        // Salvar apenas se houve mudança
         if (userPlan.Status != oldStatus || userPlan.CurrentPeriodEnd != oldPeriodEnd)
         {
             await _userPlanRepository.UpdateAsync(userPlan);
@@ -306,7 +281,6 @@ public class PaymentController : BaseController
         }
     }
 
-    // HandleSubscriptionDeletedAsync: Marca o plano como cancelado
     private async Task HandleSubscriptionDeletedAsync(Event stripeEvent)
     {
         if (stripeEvent.Data.Object is not Subscription subscription) { /* Log e return */ return; }
@@ -315,11 +289,9 @@ public class PaymentController : BaseController
         var userPlan = await _userPlanRepository.GetByStripeSubscriptionIdAsync(stripeSubscriptionId);
 
         if (userPlan == null) { /* Log warning e return */ return; }
-        if (userPlan.Status == "Canceled") { /* Log info (idempotência) e return */ return; }
+        if (userPlan.Status == SubscriptionStatusEnum.Canceled) { /* Log info (idempotência) e return */ return; }
 
-        // Marcar como cancelado
-        userPlan.Status = "Canceled";
-        // userPlan.CancellationDate = subscription.CanceledAt; // Opcional
+        userPlan.Cancel();
 
         await _userPlanRepository.UpdateAsync(userPlan);
         _logger.LogInformation("UserPlan marcado como 'Canceled' para SubId {SubId} via {EventType} (Id: {EventId}). Acesso expira {PeriodEnd}.",
@@ -328,16 +300,12 @@ public class PaymentController : BaseController
         // Lembrete: Precisa de lógica externa para revogar acesso após CurrentPeriodEnd
     }
 
-    // HandleUnknownEvent: Apenas registra eventos não mapeados
     private Task HandleUnknownEvent(Event stripeEvent)
     {
         _logger.LogWarning("Webhook Stripe: Evento não tratado recebido: Type={EventType}, Id={EventId}", stripeEvent.Type, stripeEvent.Id);
         return Task.CompletedTask; // Confirma recebimento
     }
 
-    // --- Funções Auxiliares (Mantidas como antes) ---
-
-    // TryRecoverUserPlanFromSubscription: Tenta criar UserPlan se ausente
     private async Task TryRecoverUserPlanFromSubscription(string stripeSubscriptionId, string stripeCustomerId)
     {
         // Idempotência dentro da recuperação
@@ -357,8 +325,10 @@ public class PaymentController : BaseController
                 return;
             }
 
-            var recoveredPlan = new UserPlan(userIdStr, planId, sub.StartDate, sub.CurrentPeriodEnd,
-                                            stripeCustomerId ?? sub.CustomerId, stripeSubscriptionId, ConvertStripeSubscriptionStatus(sub.Status));
+            var currentPeriodEnd = sub.Items.Data.FirstOrDefault()?.CurrentPeriodEnd;
+
+            var recoveredPlan = new UserPlan(userIdStr, planId, sub.StartDate, currentPeriodEnd,
+                                            stripeCustomerId ?? sub.CustomerId, stripeSubscriptionId, StripeExtension.ConvertStripeSubscriptionStatus(sub.Status));
             await _userPlanRepository.AddAsync(recoveredPlan);
             _logger.LogInformation("UserPlan RECUPERADO (Status: {Status}) para UserId {UserId}, PlanId {PlanId}, SubId {SubId}",
                  recoveredPlan.Status, recoveredPlan.UserId, recoveredPlan.PlanId, recoveredPlan.StripeSubscriptionId);
@@ -367,21 +337,5 @@ public class PaymentController : BaseController
         {
             _logger.LogError(e, "Erro durante recuperação do UserPlan para {SubscriptionId}.", stripeSubscriptionId);
         }
-    }
-
-    // ConvertStripeSubscriptionStatus: Mapeia status Stripe -> interno
-    private string ConvertStripeSubscriptionStatus(string? stripeStatus)
-    {
-        return stripeStatus switch
-        {
-            SubscriptionStatuses.Active => "Active",
-            SubscriptionStatuses.Trialing => "Active",
-            SubscriptionStatuses.PastDue => "PastDue",
-            SubscriptionStatuses.Unpaid => "PastDue",
-            SubscriptionStatuses.Canceled => "Canceled",
-            SubscriptionStatuses.Incomplete => "Pending",
-            SubscriptionStatuses.IncompleteExpired => "Expired",
-            _ => "Unknown"
-        };
     }
 }

@@ -4,6 +4,7 @@ using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
 using VibeSync.Domain.Domains;
+using VibeSync.Domain.Enums;
 using VibeSync.Domain.Exceptions;
 using VibeSync.Infrastructure.Repositories;
 using VibeSync.Tests.Support;
@@ -32,7 +33,7 @@ namespace VibeSync.Tests.Application
             //     .ReturnsAsync(new UserPlan(Guid.NewGuid().ToString(), Guid.NewGuid(), DateTime.Now, null, null, null, true));
 
             userPlanRepositoryMock.Setup(x => x.GetByUserIdAsync(It.IsAny<string>(), default))
-                .ReturnsAsync(new UserPlan(Guid.NewGuid().ToString(), Guid.NewGuid(), DateTime.Now, null, null, null, true)
+                .ReturnsAsync(new UserPlan(Guid.NewGuid().ToString(), Guid.NewGuid(), DateTime.Now, null, null, null, SubscriptionStatusEnum.Active)
                 {
                     Plan = new Plan(Guid.NewGuid(), "Basic Plan", 3, 0)
                 });
@@ -53,7 +54,7 @@ namespace VibeSync.Tests.Application
 
             // Arrange
             var createdSpace = await _createSpaceUseCase.Execute(
-                new CreateSpaceRequest(DEFAULT_SPACE_NAME, DEFAULT_USER_EMAIL, DateTime.Now));
+                new CreateSpaceRequest(DEFAULT_SPACE_NAME, DEFAULT_USER_EMAIL));
 
             var expected = new SpaceResponse(
                 createdSpace.AdminToken,

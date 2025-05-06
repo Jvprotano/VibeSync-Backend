@@ -1,11 +1,12 @@
 using VibeSync.Domain.Domains;
+using VibeSync.Domain.Enums;
 using VibeSync.Domain.Models;
 
 namespace VibeSync.Tests.Domain;
 
 public class UserPlanTests
 {
-    private readonly UserPlan _userPlan = new("userId", Guid.NewGuid(), DateTime.UtcNow, null, null, null, true);
+    private readonly UserPlan _userPlan = new("userId", Guid.NewGuid(), DateTime.UtcNow, null, null, null, SubscriptionStatusEnum.Active);
 
     [Fact]
     public void ReachedMaxSpaces_ShouldReturnTrue_WhenUserHasReachedMaxSpaces()
@@ -60,5 +61,46 @@ public class UserPlanTests
 
         // Assert
         Assert.False(result);
+    }
+
+    [Fact]
+    public void UpdateStatus_ShouldUpdateStatus_WhenStatusIsNotCanceled()
+    {
+        // Arrange
+        var newStatus = SubscriptionStatusEnum.Pending;
+
+        // Act
+        _userPlan.UpdateStatus(newStatus);
+
+        // Assert
+        Assert.Equal(newStatus, _userPlan.Status);
+    }
+
+    [Fact]
+    public void UpdateStatus_ShouldCancel_WhenStatusIsCanceled()
+    {
+        // Arrange
+        var newStatus = SubscriptionStatusEnum.Canceled;
+
+        // Act
+        _userPlan.UpdateStatus(newStatus);
+
+        // Assert
+        Assert.Equal(newStatus, _userPlan.Status);
+        Assert.NotNull(_userPlan.CancellationDate);
+    }
+
+    [Fact]
+    public void UpdateStatus_ShouldNotUpdate_WhenAlreadyCanceled()
+    {
+        // Arrange
+        _userPlan.UpdateStatus(SubscriptionStatusEnum.Canceled);
+        var newStatus = SubscriptionStatusEnum.Active;
+
+        // Act
+        _userPlan.UpdateStatus(newStatus);
+
+        // Assert
+        Assert.Equal(SubscriptionStatusEnum.Canceled, _userPlan.Status);
     }
 }

@@ -1,10 +1,19 @@
+using System.Data;
+using VibeSync.Domain.Enums;
 using VibeSync.Domain.Models;
 
 namespace VibeSync.Domain.Domains;
 
 public class UserPlan : BaseEntity
 {
-    public UserPlan(string userId, Guid planId, DateTime startDate, DateTime? currentPeriodEnd, string? stripeCustomerId = null, string? stripeSubscriptionId = null, bool isActive = true)
+    public UserPlan(
+        string userId,
+        Guid planId,
+        DateTime startDate,
+        DateTime? currentPeriodEnd,
+        string? stripeCustomerId = null,
+        string? stripeSubscriptionId = null,
+        SubscriptionStatusEnum status = SubscriptionStatusEnum.Unknown)
     {
         UserId = userId;
         StripeCustomerId = stripeCustomerId;
@@ -12,7 +21,7 @@ public class UserPlan : BaseEntity
         PlanId = planId;
         StartDate = startDate;
         CurrentPeriodEnd = currentPeriodEnd;
-        IsActive = isActive;
+        Status = status;
     }
 
     public string UserId { get; private set; }
@@ -22,20 +31,30 @@ public class UserPlan : BaseEntity
     public Guid PlanId { get; private set; }
     public DateTime StartDate { get; private set; }
     public DateTime? CurrentPeriodEnd { get; private set; }
-    public DateTime? CancelAt { get; private set; }
-    public bool IsActive { get; private set; }
+    public DateTime? CancellationDate { get; private set; }
+    public SubscriptionStatusEnum Status { get; private set; } = SubscriptionStatusEnum.Unknown;
 
-    public void Renew(string stripeSubscriptionId, DateTime currentPeriodEnd)
+    public void Renew(DateTime currentPeriodEnd, SubscriptionStatusEnum status)
     {
-        StripeSubscriptionId = stripeSubscriptionId;
         CurrentPeriodEnd = currentPeriodEnd;
-        IsActive = true;
+        Status = status;
     }
 
     public void Cancel()
     {
-        IsActive = false;
-        CancelAt = DateTime.UtcNow;
+        Status = SubscriptionStatusEnum.Canceled;
+        CancellationDate = DateTime.UtcNow;
+    }
+
+    public void UpdateStatus(SubscriptionStatusEnum status)
+    {
+        if (status == SubscriptionStatusEnum.Canceled)
+            Cancel();
+
+        if (Status == SubscriptionStatusEnum.Canceled)
+            return;
+            
+        Status = status;
     }
 
     public bool ReachedMaxSpaces(IEnumerable<Space> userSpaces)
