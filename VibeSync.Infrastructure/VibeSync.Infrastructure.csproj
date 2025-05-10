@@ -6,10 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols" Version="7.1.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="Stripe.net" Version="48.0.0" />

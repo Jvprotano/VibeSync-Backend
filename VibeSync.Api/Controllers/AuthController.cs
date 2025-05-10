@@ -16,6 +16,7 @@ public sealed class AuthController : BaseController
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IAuthTokenService _tokenService;
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         ILogger<AuthController> logger,
@@ -23,6 +24,7 @@ public sealed class AuthController : BaseController
         SignInManager<ApplicationUser> signInManager,
         IAuthTokenService tokenService) : base(logger)
     {
+        _logger = logger;
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
@@ -31,6 +33,7 @@ public sealed class AuthController : BaseController
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        _logger.LogInformation("Login attempt for user: {Email}", request.Email);
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
             return Unauthorized(new ErrorResponse("Usuário não encontrado", StatusCodes.Status401Unauthorized));
