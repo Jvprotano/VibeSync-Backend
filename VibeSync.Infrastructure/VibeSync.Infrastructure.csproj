@@ -6,8 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
