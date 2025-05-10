@@ -13,10 +13,10 @@ public sealed class SpaceRepository(AppDbContext appDbContext) : ISpaceRepositor
         return await appDbContext.Spaces
             .FirstOrDefaultAsync(c => guid.Equals(c.PublicToken));
     }
-    public async Task<Space?> GetByAdminTokenAsync(Guid guid)
+    public async Task<Space?> GetByAdminTokenAsync(Guid adminToken)
     {
         return await appDbContext.Spaces
-            .FirstOrDefaultAsync(c => guid.Equals(c.AdminToken));
+            .FirstOrDefaultAsync(c => adminToken.Equals(c.AdminToken));
     }
     public async Task<IEnumerable<Space>> GetSpacesByUserIdAsync(string userId)
     {
@@ -26,7 +26,7 @@ public sealed class SpaceRepository(AppDbContext appDbContext) : ISpaceRepositor
     }
     public async Task<Space> CreateAsync(Space space)
     {
-        space.SetQrCode(QrCodeExtension.GenerateQrCode(space.Id.ToString()));
+        space.SetQrCode(QrCodeExtension.GenerateQrCode(space.PublicToken.ToString()));
 
         await appDbContext.Spaces.AddAsync(space);
         await appDbContext.SaveChangesAsync();

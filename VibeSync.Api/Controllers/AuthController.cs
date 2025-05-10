@@ -36,11 +36,11 @@ public sealed class AuthController : BaseController
         _logger.LogInformation("Login attempt for user: {Email}", request.Email);
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
-            return Unauthorized(new ErrorResponse("Usuário não encontrado", StatusCodes.Status401Unauthorized));
+            return Unauthorized(new ErrorResponse("User not found", StatusCodes.Status401Unauthorized));
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
         if (!result.Succeeded)
-            return Unauthorized(new ErrorResponse("Senha inválida", StatusCodes.Status401Unauthorized));
+            return Unauthorized(new ErrorResponse("Invalid password", StatusCodes.Status401Unauthorized));
 
         var accessToken = _tokenService.GenerateAccessToken(new(user.Id, user.UserName!, user.UserName!));
         var refreshToken = _tokenService.GenerateRefreshToken();

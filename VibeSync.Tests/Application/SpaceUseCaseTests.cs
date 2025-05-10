@@ -20,20 +20,15 @@ namespace VibeSync.Tests.Application
         public SpaceUseCaseTests()
         {
             var spaceRepository = new SpaceRepository(_context);
-            // var userRepository = new UserRepository(_context, null!);
             var userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(x => x.GetByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(new User(Guid.NewGuid().ToString(), "TestUser", "", ""));
 
-            // var userPlanRepository = new UserPlanRepository(_context);
             var userPlanRepositoryMock = new Mock<IUserPlanRepository>();
 
-            // userPlanRepositoryMock.Setup(x => x.GetByUserIdAsync(It.IsAny<string>(), default))
-            //     .ReturnsAsync(new UserPlan(Guid.NewGuid().ToString(), Guid.NewGuid(), DateTime.Now, null, null, null, true));
-
             userPlanRepositoryMock.Setup(x => x.GetByUserIdAsync(It.IsAny<string>(), default))
-                .ReturnsAsync(new UserPlan(Guid.NewGuid().ToString(), Guid.NewGuid(), DateTime.Now, null, null, null, SubscriptionStatusEnum.Active)
+                .ReturnsAsync(new UserPlan(Guid.NewGuid().ToString(), Guid.NewGuid(), DateTime.UtcNow, null, null, null, SubscriptionStatusEnum.Active)
                 {
                     Plan = new Plan(Guid.NewGuid(), "Basic Plan", 3, 0)
                 });
