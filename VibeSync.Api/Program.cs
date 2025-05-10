@@ -91,6 +91,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("App started at: " + DateTime.UtcNow);
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
