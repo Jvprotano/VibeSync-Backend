@@ -51,7 +51,7 @@ public class PaymentController : BaseController
         if (userId is null)
             return Unauthorized(new ErrorResponse("User ID não encontrado no token.", StatusCodes.Status401Unauthorized));
 
-        return await Handle(() => _createCheckoutSessionUseCase.Execute(request with { UserId = Guid.Parse(userId) }));
+        return await Handle(() => _createCheckoutSessionUseCase.Execute(request with { UserId = userId.Value }));
     }
 
     [HttpPost("webhook")]
@@ -148,7 +148,7 @@ public class PaymentController : BaseController
 
         var currentPeriodEnd = subscription.Items.Data.FirstOrDefault()?.CurrentPeriodEnd;
 
-        var userPlan = new UserPlan(userIdStr, planId, subscription.StartDate, currentPeriodEnd,
+        var userPlan = new UserPlan(new Guid(userIdStr), planId, subscription.StartDate, currentPeriodEnd,
                                     stripeCustomerId, stripeSubscriptionId, StripeExtension.ConvertStripeSubscriptionStatus(subscription.Status));
         await _userPlanRepository.AddAsync(userPlan);
         _logger.LogInformation("UserPlan criado (Status: {Status}) para UserId {UserId}, PlanId {PlanId}, SubId {SubId}, Evento {EventId}",
@@ -327,7 +327,7 @@ public class PaymentController : BaseController
 
             var currentPeriodEnd = sub.Items.Data.FirstOrDefault()?.CurrentPeriodEnd;
 
-            var recoveredPlan = new UserPlan(userIdStr, planId, sub.StartDate, currentPeriodEnd,
+            var recoveredPlan = new UserPlan(new Guid(userIdStr), planId, sub.StartDate, currentPeriodEnd,
                                             stripeCustomerId ?? sub.CustomerId, stripeSubscriptionId, StripeExtension.ConvertStripeSubscriptionStatus(sub.Status));
             await _userPlanRepository.AddAsync(recoveredPlan);
             _logger.LogInformation("UserPlan RECUPERADO (Status: {Status}) para UserId {UserId}, PlanId {PlanId}, SubId {SubId}",

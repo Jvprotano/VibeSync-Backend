@@ -7,7 +7,7 @@ namespace VibeSync.Domain.Domains;
 public class UserPlan : BaseEntity
 {
     public UserPlan(
-        string userId,
+        Guid userId,
         Guid planId,
         DateTime startDate,
         DateTime? currentPeriodEnd,
@@ -24,7 +24,7 @@ public class UserPlan : BaseEntity
         Status = status;
     }
 
-    public string UserId { get; private set; }
+    public Guid UserId { get; private set; }
     public string? StripeCustomerId { get; private set; }
     public string? StripeSubscriptionId { get; private set; }
     public Plan? Plan { get; set; }
@@ -53,7 +53,7 @@ public class UserPlan : BaseEntity
 
         if (Status == SubscriptionStatusEnum.Canceled)
             return;
-            
+
         Status = status;
     }
 

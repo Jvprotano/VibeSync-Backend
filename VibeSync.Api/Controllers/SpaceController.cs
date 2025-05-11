@@ -66,6 +66,6 @@ public class SpaceController(
         if (userId is null)
             return Unauthorized(new ErrorResponse("User ID not found in token", StatusCodes.Status401Unauthorized));
 
-        return await Handle(() => getSpacesByUserIdUseCase.Execute(userId));
+        return await Handle(() => getSpacesByUserIdUseCase.Execute(userId.Value));
     }
 }

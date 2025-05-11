@@ -9,7 +9,7 @@ public class UserPlanRepository(AppDbContext appDbContext) : IUserPlanRepository
 {
     private DbSet<UserPlan> DbSet => appDbContext.UserPlans;
 
-    public async Task<UserPlan?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<UserPlan?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await DbSet
             .Where(userPlan => userPlan.UserId == userId)

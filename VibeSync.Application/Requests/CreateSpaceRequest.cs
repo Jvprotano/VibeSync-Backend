@@ -1,3 +1,3 @@
 namespace VibeSync.Application.Requests;
 
-public sealed record CreateSpaceRequest(string Name, string? UserEmail);
+public sealed record CreateSpaceRequest(string Name, string? UserEmail, DateTime EventDate);

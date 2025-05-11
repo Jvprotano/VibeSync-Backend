@@ -37,14 +37,14 @@ public abstract class BaseController(ILogger logger) : ControllerBase
         }
     }
 
-    protected string? GetUserId()
+    protected Guid? GetUserId()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(userId))
             return null;
 
-        return userId;
+        return new Guid(userId);
     }
 
     protected string? GetUserEmail()

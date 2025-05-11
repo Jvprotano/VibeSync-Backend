@@ -23,12 +23,12 @@ namespace VibeSync.Tests.Application
             var userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(x => x.GetByEmailAsync(It.IsAny<string>()))
-                .ReturnsAsync(new User(Guid.NewGuid().ToString(), "TestUser", "", ""));
+                .ReturnsAsync(new User(Guid.NewGuid(), "TestUser", "", ""));
 
             var userPlanRepositoryMock = new Mock<IUserPlanRepository>();
 
-            userPlanRepositoryMock.Setup(x => x.GetByUserIdAsync(It.IsAny<string>(), default))
-                .ReturnsAsync(new UserPlan(Guid.NewGuid().ToString(), Guid.NewGuid(), DateTime.UtcNow, null, null, null, SubscriptionStatusEnum.Active)
+            userPlanRepositoryMock.Setup(x => x.GetByUserIdAsync(It.IsAny<Guid>(), default))
+                .ReturnsAsync(new UserPlan(Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow, null, null, null, SubscriptionStatusEnum.Active)
                 {
                     Plan = new Plan(Guid.NewGuid(), "Basic Plan", 3, 0)
                 });
@@ -45,18 +45,17 @@ namespace VibeSync.Tests.Application
             const string DEFAULT_SPACE_NAME = "Fake Space";
             const string DEFAULT_USER_EMAIL = "Test@test.com";
 
-            const string DEFAULT_URL = "https://www.google.com/search?q=";
-
             // Arrange
+            var eventDate = DateTime.UtcNow.AddDays(1);
             var createdSpace = await _createSpaceUseCase.Execute(
-                new CreateSpaceRequest(DEFAULT_SPACE_NAME, DEFAULT_USER_EMAIL));
+                new CreateSpaceRequest(DEFAULT_SPACE_NAME, DEFAULT_USER_EMAIL, eventDate));
 
             var expected = new SpaceResponse(
                 createdSpace.AdminToken,
                 createdSpace.PublicToken,
                 DEFAULT_SPACE_NAME,
-                $"{DEFAULT_URL}{createdSpace.PublicToken}",
-                "Fake Qr Code"
+                "Fake Qr Code",
+                eventDate
             );
 
             expected = expected with { QrCode = createdSpace.QrCode };

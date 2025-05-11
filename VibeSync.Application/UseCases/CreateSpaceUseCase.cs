@@ -38,7 +38,7 @@ public class CreateSpaceUseCase(
             throw new ValidationException(validationResult.Errors);
     }
 
-    private async Task CheckUserSpaceLimit(string userId)
+    private async Task CheckUserSpaceLimit(Guid userId)
     {
         var userPlan = await userPlanRepository.GetByUserIdAsync(userId);
 
@@ -51,12 +51,12 @@ public class CreateSpaceUseCase(
             throw new SpacesPerUserLimitException("User has reached the maximum number of spaces allowed.");
     }
 
-    private async Task<string> GetOrCreateUser(string userEmail)
+    private async Task<Guid> GetOrCreateUser(string userEmail)
     {
         var user = await userRepository.GetByEmailAsync(userEmail)
             ?? await CreatePartialUser(userEmail);
 
-        if (string.IsNullOrEmpty(user?.Id))
+        if (user is null)
             throw new CreateUserException("Error creating partial user.");
 
         return user.Id;
@@ -66,7 +66,7 @@ public class CreateSpaceUseCase(
     {
         var user = await userRepository.AddPartialUser(userEmail);
 
-        if (string.IsNullOrEmpty(user?.Id))
+        if (user is null)
             throw new CreateUserException("Error creating partial user.");
 
         await LinkToFreePlan(user.Id);
@@ -74,7 +74,7 @@ public class CreateSpaceUseCase(
         return user;
     }
 
-    private async Task LinkToFreePlan(string userId)
+    private async Task LinkToFreePlan(Guid userId)
     {
         var freePlanId = await planRepository.GetFreePlanIdAsync();
         var userPlan = new UserPlan(userId, freePlanId, DateTime.UtcNow, DateTime.UtcNow.AddDays(7));

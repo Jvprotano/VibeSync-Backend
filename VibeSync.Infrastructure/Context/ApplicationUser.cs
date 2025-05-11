@@ -4,11 +4,24 @@ using VibeSync.Domain.Models;
 
 namespace VibeSync.Infrastructure.Context;
 
-public class ApplicationUser : IdentityUser
+public class ApplicationUser : IdentityUser<Guid>
 {
+    public string? FullName { get; set; }
     public string? RefreshToken { get; set; }
     public DateTime RefreshTokenExpiryTime { get; set; }
 
-    public virtual ICollection<Space> Spaces { get; set; } = new List<Space>();
-    public virtual ICollection<UserPlan> UserPlans { get; set; } = new List<UserPlan>();
+    public virtual ICollection<Space> Spaces { get; set; } = [];
+    public virtual ICollection<UserPlan> UserPlans { get; set; } = [];
 }
+
+public class ApplicationRole : IdentityRole<Guid> { }
+
+public class ApplicationUserRole : IdentityUserRole<Guid> { }
+
+public class ApplicationUserClaim : IdentityUserClaim<Guid> { }
+
+public class ApplicationUserLogin : IdentityUserLogin<Guid> { }
+
+public class ApplicationRoleClaim : IdentityRoleClaim<Guid> { }
+
+public class ApplicationUserToken : IdentityUserToken<Guid> { }

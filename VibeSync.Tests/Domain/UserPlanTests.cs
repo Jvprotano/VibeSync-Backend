@@ -1,23 +1,20 @@
 using VibeSync.Domain.Domains;
 using VibeSync.Domain.Enums;
 using VibeSync.Domain.Models;
+using VibeSync.Tests.Support.Factories;
 
 namespace VibeSync.Tests.Domain;
 
 public class UserPlanTests
 {
-    private readonly UserPlan _userPlan = new("userId", Guid.NewGuid(), DateTime.UtcNow, null, null, null, SubscriptionStatusEnum.Active);
+    private static readonly Guid _userId = Guid.NewGuid();
+    private readonly UserPlan _userPlan = new(_userId, Guid.NewGuid(), DateTime.UtcNow, null, null, null, SubscriptionStatusEnum.Active);
 
     [Fact]
     public void ReachedMaxSpaces_ShouldReturnTrue_WhenUserHasReachedMaxSpaces()
     {
         // Arrange
-        var spaces = new List<Space>
-        {
-            new ("space1", "userId"),
-            new ("space2", "userId"),
-            new ("space3", "userId")
-        };
+        var spaces = SpaceFactory.Generate(3, _userId);
         _userPlan.Plan = new Plan(Guid.NewGuid(), "Basic Plan", 3, 0);
 
         // Act
@@ -31,11 +28,7 @@ public class UserPlanTests
     public void ReachedMaxSpaces_ShouldReturnFalse_WhenUserHasNotReachedMaxSpaces()
     {
         // Arrange
-        var spaces = new List<Space>
-        {
-            new ("space1", "userId"),
-            new ("space2", "userId")
-        };
+        var spaces = SpaceFactory.Generate(2, _userId);
         _userPlan.Plan = new Plan(Guid.NewGuid(), "Basic Plan", 3, 0);
 
         // Act
@@ -49,11 +42,7 @@ public class UserPlanTests
     public void ReachedMaxSpaces_ShouldReturnFalse_WhenPlanIsNull()
     {
         // Arrange
-        var spaces = new List<Space>
-        {
-            new ("space1", "userId"),
-            new ("space2", "userId")
-        };
+        var spaces = SpaceFactory.Generate(2, _userId);
         _userPlan.Plan = null;
 
         // Act

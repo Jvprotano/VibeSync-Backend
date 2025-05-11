@@ -6,22 +6,23 @@ namespace VibeSync.Application.Extensions;
 
 public static class SpaceExtension
 {
-    public static Space AsDomain(this CreateSpaceRequest space, string userId)
+    public static Space AsDomain(this CreateSpaceRequest self, Guid userId)
     {
         return new Space(
-            space.Name,
-            userId
+            self.Name,
+            userId,
+            self.EventDate
         );
     }
 
-    public static SpaceResponse AsResponseModel(this Space space)
+    public static SpaceResponse AsResponseModel(this Space self)
     {
         return new SpaceResponse(
-            space.AdminToken,
-            space.PublicToken,
-            space.Name,
-            $"https://www.google.com/search?q={space.PublicToken}",
-            space.QrCode
+            self.AdminToken,
+            self.PublicToken,
+            self.Name,
+            self.QrCode,
+            self.EventDate
         );
     }
 

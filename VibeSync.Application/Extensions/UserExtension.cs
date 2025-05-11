@@ -9,6 +9,6 @@ public static class UserExtension
         => new UserResponse(
             user.Name,
             user.Email,
-            Guid.Parse(user.Id),
+            user.Id,
             planName);
 }

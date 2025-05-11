@@ -47,6 +47,6 @@ public class UserController(
         if (userId is null)
             return Unauthorized(new ErrorResponse("User ID is missing.", StatusCodes.Status401Unauthorized));
 
-        return await Handle(() => getUserUseCase.Execute(userId));
+        return await Handle(() => getUserUseCase.Execute(userId.Value));
     }
 }

@@ -18,9 +18,9 @@ public class UserRepository(AppDbContext appDbContext, UserManager<ApplicationUs
         return await GetByEmailAsync(userEmail);
     }
 
-    public async Task<User?> AddPasswordToUserAsync(string userId, string password)
+    public async Task<User?> AddPasswordToUserAsync(Guid userId, string password)
     {
-        var user = await userManager.FindByIdAsync(userId);
+        var user = await userManager.FindByIdAsync(userId.ToString());
 
         if (user is null)
             return null;
@@ -48,9 +48,9 @@ public class UserRepository(AppDbContext appDbContext, UserManager<ApplicationUs
         return new User(appUser.Id, appUser.UserName!, appUser.Email!, appUser.PasswordHash);
     }
 
-    public async Task<User?> GetByIdAsync(string userId)
+    public async Task<User?> GetByIdAsync(Guid userId)
     {
-        var appUser = await userManager.FindByIdAsync(userId);
+        var appUser = await userManager.FindByIdAsync(userId.ToString());
 
         if (appUser == null)
             return null;

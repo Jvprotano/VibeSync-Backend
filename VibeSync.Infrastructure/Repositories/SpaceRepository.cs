@@ -18,7 +18,7 @@ public sealed class SpaceRepository(AppDbContext appDbContext) : ISpaceRepositor
         return await appDbContext.Spaces
             .FirstOrDefaultAsync(c => adminToken.Equals(c.AdminToken));
     }
-    public async Task<IEnumerable<Space>> GetSpacesByUserIdAsync(string userId)
+    public async Task<IEnumerable<Space>> GetSpacesByUserIdAsync(Guid userId)
     {
         return await appDbContext.Spaces
             .Where(c => c.UserId.Equals(userId))

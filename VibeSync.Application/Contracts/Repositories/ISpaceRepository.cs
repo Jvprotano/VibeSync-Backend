@@ -6,6 +6,6 @@ public interface ISpaceRepository
 {
     Task<Space?> GetByPublicTokenAsync(Guid token);
     Task<Space?> GetByAdminTokenAsync(Guid token);
-    Task<IEnumerable<Space>> GetSpacesByUserIdAsync(string userId);
+    Task<IEnumerable<Space>> GetSpacesByUserIdAsync(Guid userId);
     Task<Space> CreateAsync(Space space);
 }

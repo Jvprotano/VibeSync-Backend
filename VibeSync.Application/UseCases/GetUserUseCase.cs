@@ -6,11 +6,11 @@ using VibeSync.Application.Responses;
 
 namespace VibeSync.Application.UseCases;
 
-public class GetUserUseCase(IUserRepository userRepository, IUserPlanRepository userPlanRepository) : IUseCase<string, UserResponse>
+public class GetUserUseCase(IUserRepository userRepository, IUserPlanRepository userPlanRepository) : IUseCase<Guid, UserResponse>
 {
-    public async Task<UserResponse> Execute(string userId)
+    public async Task<UserResponse> Execute(Guid userId)
     {
-        var user = await userRepository.GetByIdAsync(userId.ToString());
+        var user = await userRepository.GetByIdAsync(userId);
 
         if (user is null)
             throw new UserNotFoundException();

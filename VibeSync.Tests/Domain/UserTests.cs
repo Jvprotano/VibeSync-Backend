@@ -11,7 +11,7 @@ public sealed class UserTests
     public void HasPassword_ShouldReturnFalse_WhenPasswordIsNullOrEmpty(string password)
     {
         // Arrange
-        var user = new User(Guid.NewGuid().ToString(), "", "", password);
+        var user = new User(Guid.NewGuid(), "", "", password);
 
         // Act
         var result = user.HasPassword;

@@ -5,11 +5,11 @@ using VibeSync.Application.Responses;
 
 namespace VibeSync.Application.UseCases;
 
-public class GetSpacesByUserIdUseCase(ISpaceRepository spaceRepository) : IUseCase<string, IEnumerable<SpaceResponse>>
+public class GetSpacesByUserIdUseCase(ISpaceRepository spaceRepository) : IUseCase<Guid, IEnumerable<SpaceResponse>>
 {
-    public async Task<IEnumerable<SpaceResponse>> Execute(string request)
+    public async Task<IEnumerable<SpaceResponse>> Execute(Guid userId)
     {
-        var spaces = await spaceRepository.GetSpacesByUserIdAsync(request.ToString());
+        var spaces = await spaceRepository.GetSpacesByUserIdAsync(userId);
 
         return spaces.Select(space => space.AsResponseModel());
     }
