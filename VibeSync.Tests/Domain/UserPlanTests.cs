@@ -1,6 +1,5 @@
 using VibeSync.Domain.Domains;
 using VibeSync.Domain.Enums;
-using VibeSync.Domain.Models;
 using VibeSync.Tests.Support.Factories;
 
 namespace VibeSync.Tests.Domain;

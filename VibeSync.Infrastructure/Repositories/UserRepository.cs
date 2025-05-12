@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VibeSync.Application.Contracts.Repositories;
+using VibeSync.Application.Exceptions;
 using VibeSync.Domain.Domains;
 using VibeSync.Infrastructure.Context;
 
@@ -18,25 +19,8 @@ public class UserRepository(AppDbContext appDbContext, UserManager<ApplicationUs
         return await GetByEmailAsync(userEmail);
     }
 
-    public async Task<User?> AddPasswordToUserAsync(Guid userId, string password)
-    {
-        var user = await userManager.FindByIdAsync(userId.ToString());
-
-        if (user is null)
-            return null;
-
-        var updateResult = await userManager.AddPasswordAsync(user, password);
-
-        if (!updateResult.Succeeded)
-            return null;
-
-        return new User(user.Id, user.UserName!, user.Email!, password);
-    }
-
     public async Task<bool> UserExistsAsync(string email)
-    {
-        return await appDbContext.Users.AnyAsync(user => user.Email == email);
-    }
+        => await appDbContext.Users.AnyAsync(user => user.Email == email);
 
     public async Task<User?> GetByEmailAsync(string userEmail)
     {
@@ -45,7 +29,7 @@ public class UserRepository(AppDbContext appDbContext, UserManager<ApplicationUs
         if (appUser == null)
             return null;
 
-        return new User(appUser.Id, appUser.UserName!, appUser.Email!, appUser.PasswordHash);
+        return ApplicationUserToUser(appUser);
     }
 
     public async Task<User?> GetByIdAsync(Guid userId)
@@ -55,11 +39,37 @@ public class UserRepository(AppDbContext appDbContext, UserManager<ApplicationUs
         if (appUser == null)
             return null;
 
-        return new User(appUser.Id, appUser.UserName!, appUser.Email!, appUser.PasswordHash);
+        return ApplicationUserToUser(appUser);
     }
 
     private async Task<ApplicationUser?> GetApplicationUserByEmailAsync(string email)
+        => await userManager.FindByEmailAsync(email);
+
+    public async Task<User?> CreateUserAsync(string email, string password, string fullName)
     {
-        return await userManager.FindByEmailAsync(email);
+        var appUser = new ApplicationUser
+        {
+            Email = email,
+            UserName = email,
+            FullName = fullName
+        };
+
+        var result = await userManager.CreateAsync(appUser, password);
+
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine($"Error: {error.Description}");
+            }
+            return null;
+        }
+
+        var user = await GetApplicationUserByEmailAsync(email) ?? throw new UserNotFoundException();
+
+        return ApplicationUserToUser(user);
     }
+
+    private static User ApplicationUserToUser(ApplicationUser appUser)
+        => new(appUser.Id, appUser.FullName!, appUser.Email!, appUser.PasswordHash);
 }

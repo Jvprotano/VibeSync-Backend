@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -5,6 +6,7 @@ using VibeSync.Api.Controllers.Base;
 using VibeSync.Application.Contracts.Authentication;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
+using VibeSync.Application.UseCases;
 using VibeSync.Infrastructure.Context;
 
 namespace VibeSync.Api.Controllers;
@@ -17,17 +19,20 @@ public sealed class AuthController : BaseController
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IAuthTokenService _tokenService;
     private readonly ILogger<AuthController> _logger;
+    private readonly RegisterUserUseCase _registerUserUseCase;
 
     public AuthController(
         ILogger<AuthController> logger,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        IAuthTokenService tokenService) : base(logger)
+        IAuthTokenService tokenService,
+        RegisterUserUseCase registerUserUseCase) : base(logger)
     {
         _logger = logger;
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
+        _registerUserUseCase = registerUserUseCase;
     }
 
     [HttpPost("login")]
@@ -55,6 +60,27 @@ public sealed class AuthController : BaseController
             RefreshToken = refreshToken,
             ExpiresIn = 3600
         });
+    }
+
+    [HttpPost("register")]
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest payload)
+    {
+        try
+        {
+            return await Handle(() => _registerUserUseCase.Execute(payload));
+        }
+        catch (ValidationException ex)
+        {
+            _logger.LogError(ex, "Validation error occurred while registering user.");
+            return BadRequest(new ErrorResponse("Validation error", StatusCodes.Status400BadRequest, ex.ToString()));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while registering user.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse("An unexpected error occurred."));
+        }
     }
 
     [HttpPost("refresh")]

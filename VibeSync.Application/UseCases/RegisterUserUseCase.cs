@@ -9,25 +9,24 @@ using VibeSync.Application.Validators;
 
 namespace VibeSync.Application.UseCases;
 
-public class RegisterUserUseCase(IUserRepository userRepository) : IUseCase<UserRequest, UserResponse>
+public class RegisterUserUseCase(IUserRepository userRepository) : IUseCase<RegisterRequest, UserResponse>
 {
-    public async Task<UserResponse> Execute(UserRequest userRequest)
+    public async Task<UserResponse> Execute(RegisterRequest userRequest)
     {
-        var user = await userRepository.GetByEmailAsync(userRequest.Email) ?? throw new UserNotFoundException();
-
-        if (user.HasPassword)
-            throw new UserAlreadyRegisteredException(userRequest.Email);
-
         await ValidateAsync(userRequest);
 
-        var userUpdated = await userRepository.AddPasswordToUserAsync(user.Id, userRequest.Password) ?? throw new CreateUserException("Error creating user password.");
+        if (await userRepository.UserExistsAsync(userRequest.Email))
+            throw new UserAlreadyRegisteredException(userRequest.Email);
 
-        return userUpdated.AsResponseModel();
+        var userCreated = await userRepository.CreateUserAsync(userRequest.Email, userRequest.Password, userRequest.FullName)
+            ?? throw new CreateUserException("Error creating user password.");
+
+        return userCreated.AsResponseModel();
     }
 
-    private async Task ValidateAsync(UserRequest userRequest)
+    private async Task ValidateAsync(RegisterRequest userRequest)
     {
-        UserValidator validator = new();
+        RegisterValidator validator = new();
         var validationResult = await validator.ValidateAsync(userRequest);
 
         if (!validationResult.IsValid)
