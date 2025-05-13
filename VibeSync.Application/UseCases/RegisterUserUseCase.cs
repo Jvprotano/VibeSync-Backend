@@ -6,10 +6,14 @@ using VibeSync.Application.Extensions;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.Validators;
+using VibeSync.Domain.Domains;
 
 namespace VibeSync.Application.UseCases;
 
-public class RegisterUserUseCase(IUserRepository userRepository) : IUseCase<RegisterRequest, UserResponse>
+public class RegisterUserUseCase(
+    IUserRepository userRepository,
+    IPlanRepository planRepository,
+    IUserPlanRepository userPlanRepository) : IUseCase<RegisterRequest, UserResponse>
 {
     public async Task<UserResponse> Execute(RegisterRequest userRequest)
     {
@@ -21,6 +25,9 @@ public class RegisterUserUseCase(IUserRepository userRepository) : IUseCase<Regi
         var userCreated = await userRepository.CreateUserAsync(userRequest.Email, userRequest.Password, userRequest.FullName)
             ?? throw new CreateUserException("Error creating user password.");
 
+        if (await userPlanRepository.GetByUserIdAsync(userCreated.Id) is null)
+            await LinkToFreePlan(userCreated.Id);
+
         return userCreated.AsResponseModel();
     }
 
@@ -31,5 +38,11 @@ public class RegisterUserUseCase(IUserRepository userRepository) : IUseCase<Regi
 
         if (!validationResult.IsValid)
             throw new ValidationException(validationResult.Errors);
+    }
+    private async Task LinkToFreePlan(Guid userId)
+    {
+        var freePlanId = await planRepository.GetFreePlanIdAsync();
+        var userPlan = new UserPlan(userId, freePlanId, DateTime.UtcNow, DateTime.UtcNow.AddDays(7));
+        await userPlanRepository.AddAsync(userPlan);
     }
 }

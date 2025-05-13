@@ -11,13 +11,15 @@ using VibeSync.Tests.Support.Factories;
 
 namespace VibeSync.Tests.Application;
 
-public class CreateUserUseCaseTests : DatabaseTestBase
+public class RegisterUseCaseTests : DatabaseTestBase
 {
     private readonly RegisterUserUseCase _registerUserUseCase;
-    public CreateUserUseCaseTests()
+    public RegisterUseCaseTests()
     {
         var userRepositoryMock = new Mock<IUserRepository>();
-        _registerUserUseCase = new(userRepositoryMock.Object);
+        var planRepositoryMock = new Mock<IPlanRepository>();
+        var userPlanRepositoryMock = new Mock<IUserPlanRepository>();
+        _registerUserUseCase = new(userRepositoryMock.Object, planRepositoryMock.Object, userPlanRepositoryMock.Object);
     }
     [Fact]
     public async Task CreateUser_ValidInput_ReturnsUser()
@@ -26,7 +28,10 @@ public class CreateUserUseCaseTests : DatabaseTestBase
         var request = UserFactory.CreateValidRegisterRequest();
 
         var userRepositoryMock = new Mock<IUserRepository>();
-        var useCase = new RegisterUserUseCase(userRepositoryMock.Object);
+        var planRepositoryMock = new Mock<IPlanRepository>();
+        var userPlanRepositoryMock = new Mock<IUserPlanRepository>();
+
+        var useCase = new RegisterUserUseCase(userRepositoryMock.Object, planRepositoryMock.Object, userPlanRepositoryMock.Object);
 
         userRepositoryMock.Setup(x => x.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(new User(Guid.NewGuid(), request.FullName, request.Email, request.Password));

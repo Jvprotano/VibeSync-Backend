@@ -13,18 +13,18 @@ namespace VibeSync.Application.UseCases;
 public class CreateSpaceUseCase(
     ISpaceRepository spaceRepository,
     IUserRepository userRepository,
-    IUserPlanRepository userPlanRepository,
-    IPlanRepository planRepository) : IUseCase<CreateSpaceRequest, SpaceResponse>
+    IUserPlanRepository userPlanRepository)
+    : IUseCase<CreateSpaceRequest, SpaceResponse>
 {
     public async Task<SpaceResponse> Execute(CreateSpaceRequest request)
     {
         await Validate(request);
 
-        var userId = await GetOrCreateUser(request.UserEmail!);
+        var user = await userRepository.GetByIdAsync(request.UserId!.Value) ?? throw new UserNotFoundException();
 
-        await CheckUserSpaceLimit(userId);
+        await CheckUserSpaceLimit(user.Id);
 
-        var response = await spaceRepository.CreateAsync(request.AsDomain(userId));
+        var response = await spaceRepository.CreateAsync(request.AsDomain(user.Id));
 
         return response.AsResponseModel();
     }
@@ -49,35 +49,5 @@ public class CreateSpaceUseCase(
 
         if (userPlan.ReachedMaxSpaces(userSpaces))
             throw new SpacesPerUserLimitException("User has reached the maximum number of spaces allowed.");
-    }
-
-    private async Task<Guid> GetOrCreateUser(string userEmail)
-    {
-        var user = await userRepository.GetByEmailAsync(userEmail)
-            ?? await CreatePartialUser(userEmail);
-
-        if (user is null)
-            throw new CreateUserException("Error creating partial user.");
-
-        return user.Id;
-    }
-
-    private async Task<User> CreatePartialUser(string userEmail)
-    {
-        var user = await userRepository.AddPartialUser(userEmail);
-
-        if (user is null)
-            throw new CreateUserException("Error creating partial user.");
-
-        await LinkToFreePlan(user.Id);
-
-        return user;
-    }
-
-    private async Task LinkToFreePlan(Guid userId)
-    {
-        var freePlanId = await planRepository.GetFreePlanIdAsync();
-        var userPlan = new UserPlan(userId, freePlanId, DateTime.UtcNow, DateTime.UtcNow.AddDays(7));
-        await userPlanRepository.AddAsync(userPlan);
     }
 }

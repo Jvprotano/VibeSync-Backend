@@ -28,6 +28,7 @@ public class SpaceController(
         => await Handle(() => getSpaceByAdminTokenUseCase.Execute(adminToken));
 
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(typeof(SpaceResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
@@ -35,10 +36,11 @@ public class SpaceController(
     {
         try
         {
-            var loggedUserEmail = GetUserEmail();
+            var userId = GetUserId();
+            if (userId is null)
+                return Unauthorized(new ErrorResponse("User ID not found in token", StatusCodes.Status401Unauthorized));
 
-            if (!string.IsNullOrEmpty(loggedUserEmail))
-                payload = payload with { UserEmail = loggedUserEmail };
+            payload = payload with { UserId = userId.Value };
 
             return await Handle(() => createSpaceUseCase.Execute(payload));
         }

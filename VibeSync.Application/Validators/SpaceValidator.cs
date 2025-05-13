@@ -7,9 +7,8 @@ public class SpaceValidator : AbstractValidator<CreateSpaceRequest>
 {
     public SpaceValidator()
     {
-        RuleFor(space => space.UserEmail)
-            .NotEmpty()
-            .EmailAddress().WithMessage("O email do usuário é inválido.");
+        RuleFor(space => space.UserId)
+            .NotNull();
 
         RuleFor(space => space.Name)
             .NotEmpty()

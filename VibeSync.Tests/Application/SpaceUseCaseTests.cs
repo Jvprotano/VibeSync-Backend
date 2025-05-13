@@ -25,6 +25,9 @@ namespace VibeSync.Tests.Application
             userRepositoryMock.Setup(x => x.GetByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(new User(Guid.NewGuid(), "TestUser", "", ""));
 
+            userRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(new User(Guid.NewGuid(), "TestUser", "", ""));
+
             var userPlanRepositoryMock = new Mock<IUserPlanRepository>();
 
             userPlanRepositoryMock.Setup(x => x.GetByUserIdAsync(It.IsAny<Guid>(), default))
@@ -35,7 +38,7 @@ namespace VibeSync.Tests.Application
 
             var planRepository = new PlanRepository(_context);
 
-            _createSpaceUseCase = new CreateSpaceUseCase(spaceRepository, userRepositoryMock.Object, userPlanRepositoryMock.Object, planRepository);
+            _createSpaceUseCase = new CreateSpaceUseCase(spaceRepository, userRepositoryMock.Object, userPlanRepositoryMock.Object);
             _getSpaceByAdminTokenUseCase = new GetSpaceByAdminTokenUseCase(spaceRepository);
         }
 
@@ -43,12 +46,11 @@ namespace VibeSync.Tests.Application
         public async Task ShouldReturnSpace_WhenSuccessGet()
         {
             const string DEFAULT_SPACE_NAME = "Fake Space";
-            const string DEFAULT_USER_EMAIL = "Test@test.com";
 
             // Arrange
             var eventDate = DateTime.UtcNow.AddDays(1);
             var createdSpace = await _createSpaceUseCase.Execute(
-                new CreateSpaceRequest(DEFAULT_SPACE_NAME, DEFAULT_USER_EMAIL, eventDate));
+                new CreateSpaceRequest(DEFAULT_SPACE_NAME, eventDate, Guid.NewGuid()));
 
             var expected = new SpaceResponse(
                 createdSpace.AdminToken,
