@@ -17,6 +17,6 @@ public class GetUserUseCase(IUserRepository userRepository, IUserPlanRepository 
 
         var userPlan = await userPlanRepository.GetByUserIdAsync(user.Id);
 
-        return user.AsResponseModel(userPlan?.Plan?.Name);
+        return user.AsResponseModel(userPlan?.Plan);
     }
 }
