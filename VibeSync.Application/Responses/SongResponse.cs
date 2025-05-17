@@ -8,5 +8,6 @@ public sealed record SongResponse
     string ArtistName,
     string? NextPageToken,
     string? PrevPageToken,
-    DateTime? PublishedAt
+    DateTime? PublishedAt,
+    string YoutubeUrl
 );

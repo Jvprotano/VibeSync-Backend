@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VibeSync.Api.Controllers.Base;
 using VibeSync.Application.Contracts.Authentication;
+using VibeSync.Application.Contracts.Services;
+using VibeSync.Application.Exceptions;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
@@ -20,19 +22,22 @@ public sealed class AuthController : BaseController
     private readonly IAuthTokenService _tokenService;
     private readonly ILogger<AuthController> _logger;
     private readonly RegisterUserUseCase _registerUserUseCase;
+    private readonly IEmailSender _emailSender;
 
     public AuthController(
         ILogger<AuthController> logger,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IAuthTokenService tokenService,
-        RegisterUserUseCase registerUserUseCase) : base(logger)
+        RegisterUserUseCase registerUserUseCase,
+        IEmailSender emailSender) : base(logger)
     {
         _logger = logger;
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _registerUserUseCase = registerUserUseCase;
+        _emailSender = emailSender;
     }
 
     [HttpPost("login")]
@@ -69,7 +74,25 @@ public sealed class AuthController : BaseController
     {
         try
         {
-            return await Handle(() => _registerUserUseCase.Execute(payload));
+            await Handle(() => _registerUserUseCase.Execute(payload));
+
+            var user = await _userManager.FindByEmailAsync(payload.Email);
+
+            if (user == null)
+                return BadRequest(new ErrorResponse("User not found", StatusCodes.Status400BadRequest));
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = Url.Action(nameof(ConfirmEmail), "Auth",
+                new { userId = user.Id, token }, Request.Scheme);
+
+            await _emailSender.SendEmailAsync(user.Email!, "Confirm your email", $"Clique aqui para confirmar seu e-mail no VibeSync: {confirmationLink}");
+
+            return Ok("Registration successful. Please confirm your email.");
+        }
+        catch (UserAlreadyExistsException ex)
+        {
+            _logger.LogError(ex, "User already exists.");
+            return StatusCode(409, new ErrorResponse("User already exists", StatusCodes.Status409Conflict, ex.ToString()));
         }
         catch (ValidationException ex)
         {
@@ -108,5 +131,15 @@ public sealed class AuthController : BaseController
             RefreshToken = newRefreshToken,
             ExpiresIn = 3600
         });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ConfirmEmail(string userId, string token)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return BadRequest("Invalid user");
+
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+        return result.Succeeded ? Ok("Email confirmed!") : BadRequest("Email confirmation failed.");
     }
 }

@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using VibeSync.Application.Contracts.Repositories;
+using VibeSync.Application.Contracts.Services;
 using VibeSync.Application.Helpers;
 using VibeSync.Infrastructure.Context;
 using VibeSync.Infrastructure.Extensions;
 using VibeSync.Infrastructure.Helpers;
 using VibeSync.Infrastructure.Repositories;
+using VibeSync.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,9 +50,12 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // Identity
-builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = true;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
 
 // JWT Auth
 builder.Services.AddAuthentication(options =>
@@ -84,6 +89,8 @@ builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Str
 
 builder.Services.AddHttpClient<ISongIntegrationRepository, SongIntegrationRepository>();
 builder.Services.AddSingleton<SuggestionRateLimiter>();
+
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 builder.Services.AddApplicationServices();
 builder.Services.AddControllers();

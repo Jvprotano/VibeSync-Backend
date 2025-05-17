@@ -20,7 +20,7 @@ public class RegisterUserUseCase(
         await ValidateAsync(userRequest);
 
         if (await userRepository.UserExistsAsync(userRequest.Email))
-            throw new UserAlreadyRegisteredException(userRequest.Email);
+            throw new UserAlreadyExistsException(userRequest.Email);
 
         var userCreated = await userRepository.CreateUserAsync(userRequest.Email, userRequest.Password, userRequest.FullName)
             ?? throw new CreateUserException("Error creating user password.");

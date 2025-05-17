@@ -1,5 +1,6 @@
 using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.Contracts.UseCases;
+using VibeSync.Application.Helpers;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 
@@ -18,7 +19,8 @@ public class SearchSongUseCase(ISongIntegrationRepository songIntegrationReposit
             item.Snippet.ChannelTitle,
             result.NextPageToken,
             result.PrevPageToken,
-            item.Snippet.PublishedAt
+            item.Snippet.PublishedAt,
+            YoutubeHelper.GetYoutubeUrl(item.Id.VideoId)
         )).ToList();
     }
 }

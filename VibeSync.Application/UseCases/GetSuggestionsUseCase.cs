@@ -1,5 +1,6 @@
 using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.Contracts.UseCases;
+using VibeSync.Application.Helpers;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Domain.Exceptions;
@@ -38,7 +39,8 @@ public class GetSuggestionsUseCase(ISuggestionRepository suggestionRepository, I
             song.Snippet.ChannelTitle,
             string.Empty,
             string.Empty,
-            song.Snippet.PublishedAt
+            song.Snippet.PublishedAt,
+            YoutubeHelper.GetYoutubeUrl(song.Id)
         ));
     }
 }

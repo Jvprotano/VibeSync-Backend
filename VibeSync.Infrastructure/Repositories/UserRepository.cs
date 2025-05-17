@@ -7,7 +7,9 @@ using VibeSync.Infrastructure.Context;
 
 namespace VibeSync.Infrastructure.Repositories;
 
-public class UserRepository(AppDbContext appDbContext, UserManager<ApplicationUser> userManager) : IUserRepository
+public class UserRepository(
+    AppDbContext appDbContext,
+    UserManager<ApplicationUser> userManager) : IUserRepository
 {
     public async Task<User?> AddPartialUser(string userEmail)
     {
