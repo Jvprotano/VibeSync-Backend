@@ -73,5 +73,5 @@ public class UserRepository(
     }
 
     private static User ApplicationUserToUser(ApplicationUser appUser)
-        => new(appUser.Id, appUser.FullName!, appUser.Email!, appUser.PasswordHash);
+        => new(appUser.Id, appUser.FullName!, appUser.Email!, appUser.PasswordHash, appUser.EmailConfirmed);
 }

@@ -19,11 +19,16 @@ public class RegisterUserUseCase(
     {
         await ValidateAsync(userRequest);
 
-        if (await userRepository.UserExistsAsync(userRequest.Email))
+        var user = await userRepository.GetByEmailAsync(userRequest.Email);
+
+        if (user is { ConfirmedEmail: false })
+            return user.AsResponseModel();
+
+        if (user is not null)
             throw new UserAlreadyExistsException(userRequest.Email);
 
         var userCreated = await userRepository.CreateUserAsync(userRequest.Email, userRequest.Password, userRequest.FullName)
-            ?? throw new CreateUserException("Error creating user password.");
+            ?? throw new CreateUserException();
 
         if (await userPlanRepository.GetByUserIdAsync(userCreated.Id) is null)
             await LinkToFreePlan(userCreated.Id);

@@ -68,41 +68,55 @@ public sealed class AuthController : BaseController
     }
 
     [HttpPost("register")]
-    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserRegisteredResponse), StatusCodes.Status201Created)] // 201 para criação de recurso
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest payload)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(new ErrorResponse("Invalid payload.", StatusCodes.Status400BadRequest, ModelState.ToString()));
+
         try
         {
-            await Handle(() => _registerUserUseCase.Execute(payload));
-
-            var user = await _userManager.FindByEmailAsync(payload.Email);
+            UserResponse user = await _registerUserUseCase.Execute(payload);
 
             if (user == null)
-                return BadRequest(new ErrorResponse("User not found", StatusCodes.Status400BadRequest));
+            {
+                _logger.LogError("IRegisterUserUseCase returned null for email: {Email}", payload.Email);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse("User registration failed unexpectedly."));
+            }
 
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var confirmationLink = Url.Action(nameof(ConfirmEmail), "Auth",
-                new { userId = user.Id, token }, Request.Scheme);
+            var userEntity = await _userManager.FindByEmailAsync(user.Email);
 
-            await _emailSender.SendEmailAsync(user.Email!, "Confirm your email", $"Clique aqui para confirmar seu e-mail no VibeSync: {confirmationLink}");
+            if (userEntity == null)
+            {
+                _logger.LogError("User not found after registration: {Email}", payload.Email);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse("User registration failed unexpectedly."));
+            }
 
-            return Ok("Registration successful. Please confirm your email.");
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(userEntity);
+            await _emailSender.SendConfirmationEmailAsync(userEntity.AsUser(), token);
+
+            var response = new UserRegisteredResponse(userEntity.Id, userEntity.Email!, "Registration successful. Please check your email to confirm your account.");
+
+
+            return StatusCode(StatusCodes.Status201Created, response);
         }
         catch (UserAlreadyExistsException ex)
         {
-            _logger.LogError(ex, "User already exists.");
-            return StatusCode(409, new ErrorResponse("User already exists", StatusCodes.Status409Conflict, ex.ToString()));
+            _logger.LogWarning(ex, "Attempt to register existing user: {Email}", payload.Email);
+            return StatusCode(StatusCodes.Status409Conflict, new ErrorResponse("User already exists.", StatusCodes.Status409Conflict, ex.Message));
         }
         catch (ValidationException ex)
         {
-            _logger.LogError(ex, "Validation error occurred while registering user.");
-            return BadRequest(new ErrorResponse("Validation error", StatusCodes.Status400BadRequest, ex.ToString()));
+            _logger.LogWarning(ex, "Validation error during registration for: {Email}", payload.Email);
+            return BadRequest(new ErrorResponse("Validation error.", StatusCodes.Status400BadRequest, ex.ToString() ?? ex.Message));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while registering user.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse("An unexpected error occurred."));
+            _logger.LogError(ex, "An unexpected error occurred while registering user: {Email}", payload.Email);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse("An unexpected error occurred. Please try again later."));
         }
     }
 
@@ -133,13 +147,16 @@ public sealed class AuthController : BaseController
         });
     }
 
-    [HttpGet]
-    public async Task<IActionResult> ConfirmEmail(string userId, string token)
+    [HttpPost("confirm-email")]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest payload)
     {
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return BadRequest("Invalid user");
+        var user = await _userManager.FindByIdAsync(payload.UserId);
+        if (user == null) return BadRequest(new ErrorResponse("Usuário inválido", StatusCodes.Status400BadRequest));
+
+        var token = payload.Token.Replace(" ", "+");
 
         var result = await _userManager.ConfirmEmailAsync(user, token);
-        return result.Succeeded ? Ok("Email confirmed!") : BadRequest("Email confirmation failed.");
+        return result.Succeeded ? Ok(new { message = "Email confirmed!" }) : BadRequest(new ErrorResponse("Email confirmation failed.", StatusCodes.Status400BadRequest));
     }
 }

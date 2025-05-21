@@ -7,9 +7,8 @@ public static class UserExtension
 {
     public static UserResponse AsResponseModel(this User user, Plan? plan = null)
         => new UserResponse(
-            user.Name,
+            user.FullName,
             user.Email,
             user.Id,
-            plan != null ? new PlanResponse(plan.Name, plan.MaxSpaces) : null
-            );
+            plan != null ? new PlanResponse(plan.Name, plan.MaxSpaces) : null);
 }

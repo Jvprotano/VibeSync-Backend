@@ -15,9 +15,9 @@ using VibeSync.Infrastructure.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // JWT Configuration
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "sua-chave-secreta-super-segura";
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "VibeSync";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "VibeSync";
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new ArgumentNullException("Jwt:Issuer");
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? throw new ArgumentNullException("Jwt:Audience");
 
 // Swagger + JWT
 builder.Services.AddEndpointsApiExplorer();
@@ -86,11 +86,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.Configure<YouTubeSettings>(builder.Configuration.GetSection("YoutubeSettings"));
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.Configure<FrontendSettings>(builder.Configuration.GetSection(FrontendSettings.SectionName));
 
 builder.Services.AddHttpClient<ISongIntegrationRepository, SongIntegrationRepository>();
 builder.Services.AddSingleton<SuggestionRateLimiter>();
 
-builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IEmailSender, AuthEmailService>();
 
 builder.Services.AddApplicationServices();
 builder.Services.AddControllers();

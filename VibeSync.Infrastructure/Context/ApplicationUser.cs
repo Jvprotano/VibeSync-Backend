@@ -9,9 +9,15 @@ public class ApplicationUser : IdentityUser<Guid>
     public string? FullName { get; set; }
     public string? RefreshToken { get; set; }
     public DateTime RefreshTokenExpiryTime { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public virtual ICollection<Space> Spaces { get; set; } = [];
     public virtual ICollection<UserPlan> UserPlans { get; set; } = [];
+
+    public User AsUser()
+    {
+        return new User(Id, FullName ?? string.Empty, Email!, null, EmailConfirmed);
+    }
 }
 
 public class ApplicationRole : IdentityRole<Guid> { }
