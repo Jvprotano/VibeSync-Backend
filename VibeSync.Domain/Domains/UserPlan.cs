@@ -45,15 +45,15 @@ public class UserPlan : BaseEntity
         CancellationDate = DateTime.UtcNow;
     }
 
-    public void UpdateStatus(SubscriptionStatusEnum status)
+    public void UpdateStatus(SubscriptionStatusEnum newStatus)
     {
-        if (status == SubscriptionStatusEnum.Canceled)
+        if (newStatus == SubscriptionStatusEnum.Canceled)
             Cancel();
 
         if (Status == SubscriptionStatusEnum.Canceled)
             return;
 
-        Status = status;
+        Status = newStatus;
     }
 
     public bool ReachedMaxSpaces(IEnumerable<Space> userSpaces)

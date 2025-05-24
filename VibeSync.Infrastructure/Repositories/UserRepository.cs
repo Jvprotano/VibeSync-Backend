@@ -11,16 +11,6 @@ public class UserRepository(
     AppDbContext appDbContext,
     UserManager<ApplicationUser> userManager) : IUserRepository
 {
-    public async Task<User?> AddPartialUser(string userEmail)
-    {
-        var result = await userManager.CreateAsync(new() { Email = userEmail, UserName = userEmail });
-
-        if (!result.Succeeded)
-            return null;
-
-        return await GetByEmailAsync(userEmail);
-    }
-
     public async Task<bool> UserExistsAsync(string email)
         => await appDbContext.Users.AnyAsync(user => user.Email == email);
 
@@ -44,17 +34,9 @@ public class UserRepository(
         return appUser.AsUser();
     }
 
-    private async Task<ApplicationUser?> GetApplicationUserByEmailAsync(string email)
-        => await userManager.FindByEmailAsync(email);
-
     public async Task<User?> CreateUserAsync(string email, string password, string fullName)
     {
-        var appUser = new ApplicationUser
-        {
-            Email = email,
-            UserName = email,
-            FullName = fullName
-        };
+        var appUser = new ApplicationUser(fullName, email, email);
 
         var result = await userManager.CreateAsync(appUser, password);
 
@@ -71,4 +53,7 @@ public class UserRepository(
 
         return user.AsUser();
     }
+
+    private async Task<ApplicationUser?> GetApplicationUserByEmailAsync(string email)
+        => await userManager.FindByEmailAsync(email);
 }

@@ -10,12 +10,12 @@ public class ApplicationUserTests
     {
         //Arrange
         var appUser = new ApplicationUser
-        {
-            Id = Guid.NewGuid(),
-            FullName = "John Doe",
-            Email = "email@test.com",
-            EmailConfirmed = true
-        };
+        (
+            "John Doe",
+            "email@test.com",
+            "email@test.com",
+            true
+        );
 
         //Act
         var user = appUser.AsUser();

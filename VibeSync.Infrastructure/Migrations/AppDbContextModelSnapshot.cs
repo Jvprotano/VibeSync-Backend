@@ -43,7 +43,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Plans");
+                    b.ToTable("Plans", (string)null);
 
                     b.HasData(
                         new
@@ -118,7 +118,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserPlans");
+                    b.ToTable("UserPlans", (string)null);
                 });
 
             modelBuilder.Entity("VibeSync.Domain.Models.Space", b =>
@@ -154,7 +154,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Spaces");
+                    b.ToTable("Spaces", (string)null);
                 });
 
             modelBuilder.Entity("VibeSync.Domain.Models.Suggestion", b =>
@@ -180,7 +180,7 @@ namespace VibeSync.Infrastructure.Migrations
 
                     b.HasIndex("SpaceId");
 
-                    b.ToTable("Suggestions");
+                    b.ToTable("Suggestions", (string)null);
                 });
 
             modelBuilder.Entity("VibeSync.Infrastructure.Context.ApplicationRole", b =>

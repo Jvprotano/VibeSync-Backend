@@ -6,7 +6,16 @@ namespace VibeSync.Infrastructure.Context;
 
 public class ApplicationUser : IdentityUser<Guid>
 {
-    public string FullName { get; set; } = string.Empty;
+    public ApplicationUser(string fullName, string email, string userName, bool emailConfirmed = false)
+        : base(userName)
+    {
+        FullName = fullName;
+        Email = email;
+        UserName = userName;
+        EmailConfirmed = emailConfirmed;
+    }
+
+    public string FullName { get; set; }
     public string? RefreshToken { get; set; }
     public DateTime RefreshTokenExpiryTime { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
