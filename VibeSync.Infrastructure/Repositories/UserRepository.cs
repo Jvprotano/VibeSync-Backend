@@ -31,7 +31,7 @@ public class UserRepository(
         if (appUser == null)
             return null;
 
-        return ApplicationUserToUser(appUser);
+        return appUser.AsUser();
     }
 
     public async Task<User?> GetByIdAsync(Guid userId)
@@ -41,7 +41,7 @@ public class UserRepository(
         if (appUser == null)
             return null;
 
-        return ApplicationUserToUser(appUser);
+        return appUser.AsUser();
     }
 
     private async Task<ApplicationUser?> GetApplicationUserByEmailAsync(string email)
@@ -69,9 +69,6 @@ public class UserRepository(
 
         var user = await GetApplicationUserByEmailAsync(email) ?? throw new UserNotFoundException();
 
-        return ApplicationUserToUser(user);
+        return user.AsUser();
     }
-
-    private static User ApplicationUserToUser(ApplicationUser appUser)
-        => new(appUser.Id, appUser.FullName!, appUser.Email!, appUser.PasswordHash, appUser.EmailConfirmed);
 }

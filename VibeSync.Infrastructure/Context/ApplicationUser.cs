@@ -6,7 +6,7 @@ namespace VibeSync.Infrastructure.Context;
 
 public class ApplicationUser : IdentityUser<Guid>
 {
-    public string? FullName { get; set; }
+    public string FullName { get; set; } = string.Empty;
     public string? RefreshToken { get; set; }
     public DateTime RefreshTokenExpiryTime { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -15,9 +15,7 @@ public class ApplicationUser : IdentityUser<Guid>
     public virtual ICollection<UserPlan> UserPlans { get; set; } = [];
 
     public User AsUser()
-    {
-        return new User(Id, FullName ?? string.Empty, Email!, null, EmailConfirmed);
-    }
+        => new(Id, FullName, Email ?? UserName!, EmailConfirmed);
 }
 
 public class ApplicationRole : IdentityRole<Guid> { }

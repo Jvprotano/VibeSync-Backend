@@ -23,10 +23,10 @@ namespace VibeSync.Tests.Application
             var userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(x => x.GetByEmailAsync(It.IsAny<string>()))
-                .ReturnsAsync(new User(Guid.NewGuid(), "TestUser", "", ""));
+                .ReturnsAsync(new User(Guid.NewGuid(), "TestUser", ""));
 
             userRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
-                .ReturnsAsync(new User(Guid.NewGuid(), "TestUser", "", ""));
+                .ReturnsAsync(new User(Guid.NewGuid(), "TestUser", ""));
 
             var userPlanRepositoryMock = new Mock<IUserPlanRepository>();
 

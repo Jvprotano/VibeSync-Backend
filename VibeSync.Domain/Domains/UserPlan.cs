@@ -61,6 +61,11 @@ public class UserPlan : BaseEntity
         if (Plan == null)
             return false;
 
-        return userSpaces.Count() >= Plan?.MaxSpaces;
+        var plansOfThisMonth = userSpaces
+            .Where(x => x.EventDate.Month == DateTime.UtcNow.Month
+                && x.EventDate.Year == DateTime.UtcNow.Year)
+            .Count();
+
+        return plansOfThisMonth >= Plan?.MaxSpaces;
     }
 }

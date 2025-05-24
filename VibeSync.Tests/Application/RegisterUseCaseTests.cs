@@ -34,7 +34,7 @@ public class RegisterUseCaseTests : DatabaseTestBase
         var useCase = new RegisterUserUseCase(userRepositoryMock.Object, planRepositoryMock.Object, userPlanRepositoryMock.Object);
 
         userRepositoryMock.Setup(x => x.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(new User(Guid.NewGuid(), request.FullName, request.Email, request.Password));
+            .ReturnsAsync(new User(Guid.NewGuid(), request.FullName, request.Email));
 
         userRepositoryMock.Setup(x => x.UserExistsAsync(It.IsAny<string>()))
             .ReturnsAsync(false);

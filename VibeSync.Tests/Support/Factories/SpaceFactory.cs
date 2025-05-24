@@ -15,7 +15,7 @@ public static class SpaceFactory
 
         for (int i = 0; i < count; i++)
         {
-            var space = new Space($"Space {i + 1}", userId ?? Guid.NewGuid(), DateTime.UtcNow.AddDays(1));
+            var space = new Space($"Space {i + 1}", userId ?? Guid.NewGuid(), DateTime.UtcNow);
             spaces.Add(space);
         }
 
