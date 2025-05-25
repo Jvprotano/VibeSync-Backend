@@ -22,7 +22,8 @@ public static class SpaceExtension
             self.PublicToken,
             self.Name,
             self.QrCode,
-            self.EventDate
+            self.EventDate,
+            self.Suggestions?.Count() ?? 0
         );
     }
 

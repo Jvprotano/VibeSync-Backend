@@ -22,6 +22,7 @@ public sealed class SpaceRepository(AppDbContext appDbContext) : ISpaceRepositor
     {
         return await appDbContext.Spaces
             .Where(c => c.UserId.Equals(userId))
+            .Include(c => c.Suggestions)
             .ToListAsync();
     }
     public async Task<Space> CreateAsync(Space space)

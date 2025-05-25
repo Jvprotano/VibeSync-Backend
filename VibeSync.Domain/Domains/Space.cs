@@ -17,6 +17,7 @@ public class Space : BaseEntity
     public string QrCode { get; private set; } = string.Empty;
     public Guid UserId { get; private set; }
     public DateTime EventDate { get; private set; }
+    public IList<Suggestion>? Suggestions { get; private set; } = [];
 
     public void SetQrCode(string qrCode)
     {

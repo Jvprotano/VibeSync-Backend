@@ -67,7 +67,7 @@ public class PaymentController : BaseController
         try
         {
             var signatureHeader = Request.Headers["Stripe-Signature"];
-            // stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, _webhookSecret);
+            stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, _webhookSecret);
             stripeEvent = EventUtility.ParseEvent(json);
 
             _logger.LogInformation("Stripe Event Received: Id={EventId}, Type={EventType}", stripeEvent.Id, stripeEvent.Type);
@@ -303,7 +303,7 @@ public class PaymentController : BaseController
     private Task HandleUnknownEvent(Event stripeEvent)
     {
         _logger.LogWarning("Webhook Stripe: Evento não tratado recebido: Type={EventType}, Id={EventId}", stripeEvent.Type, stripeEvent.Id);
-        return Task.CompletedTask; // Confirma recebimento
+        return Task.CompletedTask;
     }
 
     private async Task TryRecoverUserPlanFromSubscription(string stripeSubscriptionId, string stripeCustomerId)
