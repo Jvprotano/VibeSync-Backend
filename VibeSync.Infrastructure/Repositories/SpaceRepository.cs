@@ -1,12 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using VibeSync.Application.Contracts.Repositories;
+using VibeSync.Application.Helpers;
 using VibeSync.Domain.Models;
 using VibeSync.Infrastructure.Context;
 using VibeSync.Infrastructure.Helpers;
 
 namespace VibeSync.Infrastructure.Repositories;
 
-public sealed class SpaceRepository(AppDbContext appDbContext) : ISpaceRepository
+public sealed class SpaceRepository(AppDbContext appDbContext, IOptions<FrontendSettings> frontendSettings) : ISpaceRepository
 {
     public async Task<Space?> GetByPublicTokenAsync(Guid guid)
     {
@@ -27,7 +29,8 @@ public sealed class SpaceRepository(AppDbContext appDbContext) : ISpaceRepositor
     }
     public async Task<Space> CreateAsync(Space space)
     {
-        space.SetQrCode(QrCodeExtension.GenerateQrCode(space.PublicToken.ToString()));
+        string spaceUrl = $"{frontendSettings.Value.BaseUrl}/space/{space.PublicToken}";
+        space.SetQrCode(QrCodeExtension.GenerateQrCode(spaceUrl));
 
         await appDbContext.Spaces.AddAsync(space);
         await appDbContext.SaveChangesAsync();
