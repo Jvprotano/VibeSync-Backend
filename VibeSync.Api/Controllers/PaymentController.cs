@@ -67,7 +67,7 @@ public class PaymentController : BaseController
         try
         {
             var signatureHeader = Request.Headers["Stripe-Signature"];
-            stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, _webhookSecret);
+            stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, _webhookSecret, throwOnApiVersionMismatch: false);
             stripeEvent = EventUtility.ParseEvent(json);
 
             _logger.LogInformation("Stripe Event Received: Id={EventId}, Type={EventType}", stripeEvent.Id, stripeEvent.Type);
