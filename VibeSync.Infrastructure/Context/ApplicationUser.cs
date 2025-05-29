@@ -18,7 +18,7 @@ public class ApplicationUser : IdentityUser<Guid>
     public string FullName { get; set; }
     public string? RefreshToken { get; set; }
     public DateTime RefreshTokenExpiryTime { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public virtual ICollection<Space> Spaces { get; set; } = [];
     public virtual ICollection<UserPlan> UserPlans { get; set; } = [];

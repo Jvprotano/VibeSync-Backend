@@ -9,9 +9,17 @@ namespace VibeSync.Infrastructure.Services;
 public class StripeService : IStripeService
 {
     private readonly StripeSettings _settings;
+    private readonly FrontendSettings _frontendSettings;
 
-    public StripeService(IOptions<StripeSettings> settings)
+    public StripeService(IOptions<StripeSettings> settings, IOptions<FrontendSettings> frontendSettings)
     {
+        _frontendSettings = frontendSettings.Value;
+        if (settings == null || settings.Value == null)
+            throw new ArgumentNullException(nameof(settings), "Stripe settings cannot be null.");
+
+        if (_frontendSettings == null || string.IsNullOrWhiteSpace(_frontendSettings.BaseUrl))
+            throw new ArgumentNullException(nameof(frontendSettings), "Frontend settings cannot be null or have an empty BaseUrl.");
+
         _settings = settings.Value;
         StripeConfiguration.ApiKey = _settings.SecretKey;
     }
@@ -30,8 +38,8 @@ public class StripeService : IStripeService
                 },
             },
             Mode = "subscription",
-            SuccessUrl = $"http://localhost:4200/success?session_id={{CHECKOUT_SESSION_ID}}",
-            CancelUrl = $"http://localhost:4200/pricing",
+            SuccessUrl = $"{_frontendSettings.BaseUrl}/success?session_id={{CHECKOUT_SESSION_ID}}",
+            CancelUrl = $"{_frontendSettings.BaseUrl}/pricing",
             Metadata = new Dictionary<string, string>
             {
                 { "userId", userId.ToString() },

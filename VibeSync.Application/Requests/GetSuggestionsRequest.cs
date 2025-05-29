@@ -1,3 +1,5 @@
+using VibeSync.Domain.Enums;
+
 namespace VibeSync.Application.Requests;
 
-public sealed record GetSuggestionsRequest(Guid SpaceAdminToken, DateTime? StartDateTime, DateTime? EndDateTime, int Amount = 10);
+public sealed record GetSuggestionsRequest(Guid SpaceAdminToken, SuggestionFilterTimeEnum TimeFilter, int Amount = 10);

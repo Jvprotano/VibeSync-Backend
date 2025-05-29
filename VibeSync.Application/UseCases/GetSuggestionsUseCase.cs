@@ -1,5 +1,6 @@
 using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.Contracts.UseCases;
+using VibeSync.Application.Extensions;
 using VibeSync.Application.Helpers;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
@@ -14,7 +15,7 @@ public class GetSuggestionsUseCase(ISuggestionRepository suggestionRepository, I
     {
         var space = await spaceRepository.GetByAdminTokenAsync(request.SpaceAdminToken) ?? throw new SpaceNotFoundException(request.SpaceAdminToken);
 
-        var response = await suggestionRepository.GetSuggestions(space.Id, request.StartDateTime, request.EndDateTime, request.Amount);
+        var response = await suggestionRepository.GetSuggestions(space.Id, request.TimeFilter.GetStartDateTime(), DateTime.UtcNow, request.Amount);
 
         var songs = await GetSongsByResponse(response);
 

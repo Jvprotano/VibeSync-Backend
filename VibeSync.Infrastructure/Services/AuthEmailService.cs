@@ -5,16 +5,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VibeSync.Application.Contracts.Services;
+using VibeSync.Application.Helpers;
 using VibeSync.Domain.Domains;
 using VibeSync.Infrastructure.Context;
 
 namespace VibeSync.Infrastructure.Services;
-
-public class FrontendSettings
-{
-    public const string SectionName = "Frontend";
-    public string BaseUrl { get; set; } = string.Empty;
-}
 
 public class AuthEmailService : IEmailSender
 {
