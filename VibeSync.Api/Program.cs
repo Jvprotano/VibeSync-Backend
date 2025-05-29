@@ -97,6 +97,8 @@ builder.Services.AddApplicationServices();
 builder.Services.AddControllers();
 builder.Services.AddAuthorization();
 
+builder.Services.AddApplicationInsightsTelemetry();
+
 var app = builder.Build();
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
