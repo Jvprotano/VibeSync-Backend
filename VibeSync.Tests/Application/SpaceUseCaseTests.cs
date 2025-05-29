@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Options;
 using Moq;
 using VibeSync.Application.Contracts.Repositories;
+using VibeSync.Application.Helpers;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.UseCases;
@@ -16,10 +18,16 @@ namespace VibeSync.Tests.Application
         private readonly CreateSpaceUseCase _createSpaceUseCase;
         private readonly GetSpaceByAdminTokenUseCase _getSpaceByAdminTokenUseCase;
 
-
         public SpaceUseCaseTests()
         {
-            var spaceRepository = new SpaceRepository(_context);
+            var frontendSettings = new FrontendSettings
+            {
+                BaseUrl = "https://example.com"
+            };
+            var optionsMock = new Mock<IOptions<FrontendSettings>>();
+            optionsMock.Setup(o => o.Value).Returns(frontendSettings);
+
+            var spaceRepository = new SpaceRepository(_context, optionsMock.Object);
             var userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(x => x.GetByEmailAsync(It.IsAny<string>()))
