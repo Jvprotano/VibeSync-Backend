@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Domain.Domains;
+using VibeSync.Domain.Enums;
 using VibeSync.Infrastructure.Context;
 
 namespace VibeSync.Infrastructure.Repositories;
@@ -15,7 +16,7 @@ public class UserPlanRepository(AppDbContext appDbContext) : IUserPlanRepository
             .Where(userPlan => userPlan.UserId == userId)
             .Include(userPlan => userPlan.Plan)
             .OrderByDescending(userPlan => userPlan.CreatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(userPlan => userPlan.Status == SubscriptionStatusEnum.Active, cancellationToken);
     }
 
     public async Task<UserPlan?> GetByStripeSubscriptionIdAsync(string stripeSubscriptionId)

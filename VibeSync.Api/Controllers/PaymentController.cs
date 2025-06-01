@@ -110,11 +110,10 @@ public class PaymentController : BaseController
         return Ok();
     }
 
-    // HandleCheckoutSessionCompletedAsync: Cria o registro inicial UserPlan
     private async Task HandleCheckoutSessionCompletedAsync(Event stripeEvent)
     {
-        if (stripeEvent.Data.Object is not Session session) { /* Log e return */ return; }
-        if (string.IsNullOrEmpty(session.SubscriptionId)) { /* Log e return */ return; } // Essencial para assinatura
+        if (stripeEvent.Data.Object is not Session session) { _logger.LogWarning("Session not found"); return; }
+        if (string.IsNullOrEmpty(session.SubscriptionId)) { _logger.LogWarning("SubscriptionId of session not found."); return; } // Essencial para assinatura
 
         var stripeSubscriptionId = session.SubscriptionId;
         var stripeCustomerId = session.CustomerId;
@@ -132,7 +131,6 @@ public class PaymentController : BaseController
             return;
         }
 
-        // Obter dados da Subscription para preenchimento inicial
         Subscription subscription;
         try
         {
@@ -143,7 +141,7 @@ public class PaymentController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "Falha ao obter Stripe Subscription {SubscriptionId} em {EventType} (Id: {EventId})", stripeSubscriptionId, stripeEvent.Type, stripeEvent.Id);
-            return; // Não criar UserPlan sem dados da Subscription
+            return;
         }
 
         var currentPeriodEnd = subscription.Items.Data.FirstOrDefault()?.CurrentPeriodEnd;
@@ -247,7 +245,6 @@ public class PaymentController : BaseController
         var stripeSubscriptionId = subscription.Id;
         var userPlan = await _userPlanRepository.GetByStripeSubscriptionIdAsync(stripeSubscriptionId);
 
-        // Recuperação se não encontrado
         if (userPlan == null)
         {
             _logger.LogWarning("UserPlan não encontrado para {SubscriptionId} em {EventType} (Id: {EventId}). Tentando recuperação...", stripeSubscriptionId, stripeEvent.Type, stripeEvent.Id);
@@ -288,8 +285,8 @@ public class PaymentController : BaseController
         var stripeSubscriptionId = subscription.Id;
         var userPlan = await _userPlanRepository.GetByStripeSubscriptionIdAsync(stripeSubscriptionId);
 
-        if (userPlan == null) { /* Log warning e return */ return; }
-        if (userPlan.Status == SubscriptionStatusEnum.Canceled) { /* Log info (idempotência) e return */ return; }
+        if (userPlan == null) { _logger.LogWarning("User plan not found."); return; }
+        if (userPlan.Status == SubscriptionStatusEnum.Canceled) { _logger.LogInformation("User plan canceled."); return; }
 
         userPlan.Cancel();
 
@@ -308,7 +305,6 @@ public class PaymentController : BaseController
 
     private async Task TryRecoverUserPlanFromSubscription(string stripeSubscriptionId, string stripeCustomerId)
     {
-        // Idempotência dentro da recuperação
         if (await _userPlanRepository.GetByStripeSubscriptionIdAsync(stripeSubscriptionId) != null) { return; }
 
         _logger.LogInformation("Tentando recuperar UserPlan para {SubscriptionId}", stripeSubscriptionId);
@@ -316,7 +312,7 @@ public class PaymentController : BaseController
         {
             var subService = new SubscriptionService();
             var sub = await subService.GetAsync(stripeSubscriptionId);
-            if (sub == null) { /* Log warning e return */ return; }
+            if (sub == null) { _logger.LogWarning("Subscription not found."); return; }
 
             if (!sub.Metadata.TryGetValue("userId", out var userIdStr) || string.IsNullOrEmpty(userIdStr) ||
                 !sub.Metadata.TryGetValue("planId", out var planIdStr) || !Guid.TryParse(planIdStr, out var planId))

@@ -10,10 +10,8 @@ public class GetUserUseCase(IUserRepository userRepository, IUserPlanRepository 
 {
     public async Task<UserResponse> Execute(Guid userId)
     {
-        var user = await userRepository.GetByIdAsync(userId);
-
-        if (user is null)
-            throw new UserNotFoundException();
+        var user = await userRepository.GetByIdAsync(userId)
+            ?? throw new UserNotFoundException();
 
         var userPlan = await userPlanRepository.GetByUserIdAsync(user.Id);
 

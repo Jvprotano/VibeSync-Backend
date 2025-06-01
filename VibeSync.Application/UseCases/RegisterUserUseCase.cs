@@ -7,6 +7,7 @@ using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.Validators;
 using VibeSync.Domain.Domains;
+using VibeSync.Domain.Enums;
 
 namespace VibeSync.Application.UseCases;
 
@@ -47,7 +48,7 @@ public class RegisterUserUseCase(
     private async Task LinkToFreePlan(Guid userId)
     {
         var freePlanId = await planRepository.GetFreePlanIdAsync();
-        var userPlan = new UserPlan(userId, freePlanId, DateTime.UtcNow, DateTime.UtcNow.AddDays(7));
+        var userPlan = new UserPlan(userId, freePlanId, DateTime.UtcNow, DateTime.UtcNow.AddDays(7), status: SubscriptionStatusEnum.Active);
         await userPlanRepository.AddAsync(userPlan);
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using VibeSync.Application.Contracts.Repositories;
 using VibeSync.Application.Exceptions;
 using VibeSync.Domain.Domains;
@@ -9,7 +10,8 @@ namespace VibeSync.Infrastructure.Repositories;
 
 public class UserRepository(
     AppDbContext appDbContext,
-    UserManager<ApplicationUser> userManager) : IUserRepository
+    UserManager<ApplicationUser> userManager,
+    ILogger<UserRepository> logger) : IUserRepository
 {
     public async Task<bool> UserExistsAsync(string email)
         => await appDbContext.Users.AnyAsync(user => user.Email == email);
@@ -44,7 +46,7 @@ public class UserRepository(
         {
             foreach (var error in result.Errors)
             {
-                Console.WriteLine($"Error: {error.Description}");
+                logger.LogError($"Error creating user: {error.Description}");
             }
             return null;
         }
