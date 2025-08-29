@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
@@ -10,10 +11,15 @@ public class StripeService : IStripeService
 {
     private readonly StripeSettings _settings;
     private readonly FrontendSettings _frontendSettings;
+    private readonly ILogger<StripeService> _logger;
 
-    public StripeService(IOptions<StripeSettings> settings, IOptions<FrontendSettings> frontendSettings)
+    public StripeService(
+        IOptions<StripeSettings> settings,
+        IOptions<FrontendSettings> frontendSettings,
+        ILogger<StripeService> logger)
     {
         _frontendSettings = frontendSettings.Value;
+        _logger = logger;
         if (settings == null || settings.Value == null)
             throw new ArgumentNullException(nameof(settings), "Stripe settings cannot be null.");
 
@@ -47,8 +53,22 @@ public class StripeService : IStripeService
             }
         };
 
-        var service = new SessionService();
-        var session = await service.CreateAsync(options);
+        var sessionService = new SessionService();
+        var session = await sessionService.CreateAsync(options);
         return session.Url;
+    }
+
+    public async Task CancelSubscriptionAsync(string stripeSubscriptionId)
+    {
+        var subscriptionService = new SubscriptionService();
+        try
+        {
+            await subscriptionService.CancelAsync(stripeSubscriptionId, null);
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(ex, "Error cancelling subscription in Stripe for Subscription ID: {SubscriptionId}", stripeSubscriptionId);
+            throw new InvalidOperationException($"Stripe error: {ex.Message}");
+        }
     }
 }

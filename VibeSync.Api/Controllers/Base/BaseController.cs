@@ -1,7 +1,5 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using FluentValidation;
 using VibeSync.Application.Exceptions.Base;
 using VibeSync.Application.Responses;

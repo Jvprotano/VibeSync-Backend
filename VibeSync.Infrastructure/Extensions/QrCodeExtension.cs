@@ -1,6 +1,4 @@
-using Microsoft.Extensions.Options;
 using QRCoder;
-using VibeSync.Application.Helpers;
 
 namespace VibeSync.Infrastructure.Helpers;
 

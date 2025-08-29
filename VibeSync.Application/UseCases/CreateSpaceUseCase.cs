@@ -6,7 +6,6 @@ using VibeSync.Application.Extensions;
 using VibeSync.Application.Requests;
 using VibeSync.Application.Responses;
 using VibeSync.Application.Validators;
-using VibeSync.Domain.Domains;
 
 namespace VibeSync.Application.UseCases;
 

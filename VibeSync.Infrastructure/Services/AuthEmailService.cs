@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using VibeSync.Application.Contracts.Services;
 using VibeSync.Application.Helpers;
 using VibeSync.Domain.Domains;
-using VibeSync.Infrastructure.Context;
 
 namespace VibeSync.Infrastructure.Services;
 
