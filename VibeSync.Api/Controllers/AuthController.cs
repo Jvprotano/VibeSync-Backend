@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -158,5 +159,49 @@ public sealed class AuthController : BaseController
 
         var result = await _userManager.ConfirmEmailAsync(user, token);
         return result.Succeeded ? Ok(new { message = "Email confirmed!" }) : BadRequest(new ErrorResponse("Email confirmation failed.", StatusCodes.Status400BadRequest));
+    }
+
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return BadRequest(new ErrorResponse("Email is required.", StatusCodes.Status400BadRequest));
+
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
+        {
+            // Security best practice: do not reveal if user exists or email is confirmed
+            return Ok(new { message = "If the email is registered and confirmed, a password reset link will be sent." });
+        }
+
+        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        // Map ApplicationUser to Domain.Domains.User for email sender
+        var domainUser = user.AsUser();
+        await _emailSender.SendPasswordResetEmailAsync(domainUser, resetToken);
+        return Ok(new { message = "If the email is registered and confirmed, a password reset link will be sent." });
+    }
+
+    [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
+            return BadRequest(new ErrorResponse("All fields are required.", StatusCodes.Status400BadRequest));
+
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+            return BadRequest(new ErrorResponse("Invalid email.", StatusCodes.Status400BadRequest));
+
+        var decodedToken = HttpUtility.UrlDecode(request.Token);
+
+        var result = await _userManager.ResetPasswordAsync(user, decodedToken, request.NewPassword);
+        if (result.Succeeded)
+            return Ok(new { message = "Password has been reset successfully." });
+
+        var error = result.Errors.FirstOrDefault()?.Description ?? "Password reset failed.";
+        return BadRequest(new ErrorResponse(error, StatusCodes.Status400BadRequest));
     }
 }

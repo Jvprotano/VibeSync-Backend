@@ -55,6 +55,33 @@ public class AuthEmailService : IEmailSender
         _logger.LogInformation("Confirmation email sent successfully to {Email}", user.Email);
     }
 
+    public async Task SendPasswordResetEmailAsync(User user, string token)
+    {
+        if (user == null) throw new ArgumentNullException(nameof(user));
+        if (string.IsNullOrWhiteSpace(user.Email)) throw new ArgumentException("User email cannot be empty.", nameof(user.Email));
+        if (string.IsNullOrWhiteSpace(token)) throw new ArgumentNullException(nameof(token));
+
+        var encodedToken = HttpUtility.UrlEncode(token);
+        var resetLink = $"{_frontendSettings.BaseUrl}/reset-password?email={HttpUtility.UrlEncode(user.Email)}&token={encodedToken}";
+
+        var emailSubject = "Redefinição de Senha - VibeSync";
+        var emailBody = $@"
+                Olá {(string.IsNullOrWhiteSpace(user.FullName) ? "Usuário" : user.FullName)},<br/><br/>
+                Recebemos uma solicitação para redefinir sua senha no VibeSync.<br/>
+                Por favor, clique no link abaixo para criar uma nova senha:<br/>
+                <a href=""{resetLink}"">Redefinir minha senha</a><br/><br/>
+                Se você não solicitou a redefinição de senha, por favor, ignore este e-mail.<br/>
+                Este link expirará em 24 horas por questões de segurança.<br/><br/>
+                Se você não conseguir clicar no link, copie e cole a seguinte URL no seu navegador:<br/>
+                {resetLink}<br/><br/>
+                Atenciosamente,<br/>
+                Equipe VibeSync";
+
+        _logger.LogInformation("Attempting to send password reset email to {Email} with link: {Link}", user.Email, resetLink);
+        await SendEmailAsync(user.Email, emailSubject, emailBody);
+        _logger.LogInformation("Password reset email sent successfully to {Email}", user.Email);
+    }
+
     public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
         var smtpClient = new SmtpClient(_config["Smtp:Host"])
