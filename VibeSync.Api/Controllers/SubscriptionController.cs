@@ -28,7 +28,7 @@ public class SubscriptionController : BaseController
 
     [HttpPost("cancel")]
     [Authorize]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(DateTime), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CancelSubscription()
     {
