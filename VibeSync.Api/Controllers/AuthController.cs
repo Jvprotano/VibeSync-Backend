@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -204,11 +203,9 @@ public sealed class AuthController : BaseController
             return BadRequest(new ErrorResponse("Invalid email.", StatusCodes.Status400BadRequest));
         }
 
-        var decodedToken = HttpUtility.UrlDecode(request.Token);
+        // var decodedToken = HttpUtility.UrlDecode(request.Token);
 
-        _logger.LogInformation("Debug info Decoded Token {Token}", decodedToken);
-
-        _logger.LogInformation("Attempting password reset for user: {Email}; Token {Token}", request.Email, request.Token);
+        _logger.LogInformation("Attempting password reset for user: {Email}", request.Email);
 
         var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
         if (!result.Succeeded)

@@ -2,26 +2,15 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using VibeSync.Application.Contracts.Authentication;
 using VibeSync.Domain.Domains;
-using VibeSync.Infrastructure.Context;
 
 namespace VibeSync.Infrastructure.Authentication.Services;
 
-public class AuthTokenService : IAuthTokenService
+public class AuthTokenService(IConfiguration _configuration) : IAuthTokenService
 {
-    private readonly IConfiguration _configuration;
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public AuthTokenService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
-    {
-        _configuration = configuration;
-        _userManager = userManager;
-    }
-
     public string GenerateAccessToken(User user)
     {
         var claims = new[]
@@ -48,7 +37,5 @@ public class AuthTokenService : IAuthTokenService
     }
 
     public string GenerateRefreshToken()
-    {
-        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-    }
+        => Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 }
