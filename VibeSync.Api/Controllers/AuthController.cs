@@ -44,7 +44,7 @@ public sealed class AuthController : BaseController
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        _logger.LogWarning("Login attempt for user: {Email}", request.Email);
+        _logger.LogInformation("Login attempt for user: {Email}", request.Email);
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
             return Unauthorized(new ErrorResponse("User not found", StatusCodes.Status401Unauthorized));
@@ -206,9 +206,11 @@ public sealed class AuthController : BaseController
 
         var decodedToken = HttpUtility.UrlDecode(request.Token);
 
-        _logger.LogWarning("Attempting password reset for user: {Email}; Token {Token}", request.Email, request.Token);
+        _logger.LogInformation("Debug info Decoded Token {Token}", decodedToken);
 
-        var result = await _userManager.ResetPasswordAsync(user, decodedToken, request.NewPassword);
+        _logger.LogInformation("Attempting password reset for user: {Email}; Token {Token}", request.Email, request.Token);
+
+        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
         if (!result.Succeeded)
         {
             var error = result.Errors.FirstOrDefault()?.Description ?? "Password reset failed.";
