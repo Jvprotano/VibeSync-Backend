@@ -167,12 +167,15 @@ public sealed class AuthController : BaseController
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            _logger.LogWarning("ForgotPassword called with empty email.");
             return BadRequest(new ErrorResponse("Email is required.", StatusCodes.Status400BadRequest));
+        }
 
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
         {
-            // Security best practice: do not reveal if user exists or email is confirmed
+            _logger.LogWarning("ForgotPassword called for non-existent or unconfirmed email: {Email}", request.Email);
             return Ok(new { message = "If the email is registered and confirmed, a password reset link will be sent." });
         }
 
@@ -189,19 +192,29 @@ public sealed class AuthController : BaseController
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
+        {
+            _logger.LogWarning("ResetPassword called with missing fields.");
             return BadRequest(new ErrorResponse("All fields are required.", StatusCodes.Status400BadRequest));
+        }
 
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
+        {
+            _logger.LogWarning("ResetPassword called for non-existent email: {Email}", request.Email);
             return BadRequest(new ErrorResponse("Invalid email.", StatusCodes.Status400BadRequest));
+        }
 
         var decodedToken = HttpUtility.UrlDecode(request.Token);
 
         var result = await _userManager.ResetPasswordAsync(user, decodedToken, request.NewPassword);
-        if (result.Succeeded)
-            return Ok(new { message = "Password has been reset successfully." });
+        if (!result.Succeeded)
+        {
+            var error = result.Errors.FirstOrDefault()?.Description ?? "Password reset failed.";
+            _logger.LogWarning("Password reset failed for user: {Email}. Error: {Error}", request.Email, error);
+            return BadRequest(new ErrorResponse(error, StatusCodes.Status400BadRequest));
+        }
 
-        var error = result.Errors.FirstOrDefault()?.Description ?? "Password reset failed.";
-        return BadRequest(new ErrorResponse(error, StatusCodes.Status400BadRequest));
+        _logger.LogInformation("Password reset successful for user: {Email}", request.Email);
+        return Ok(new { message = "Password has been reset successfully." });
     }
 }

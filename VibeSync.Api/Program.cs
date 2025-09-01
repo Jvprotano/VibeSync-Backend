@@ -99,6 +99,15 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddApplicationInsightsTelemetry();
 
+builder.Services.AddLogging(loggingBuilder =>
+{
+    loggingBuilder.AddApplicationInsights(
+        configureTelemetryConfiguration: (config) =>
+            config.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"],
+        configureApplicationInsightsLoggerOptions: (options) => { }
+    );
+});
+
 var app = builder.Build();
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -107,13 +116,17 @@ logger.LogInformation("App started at: " + DateTime.UtcNow);
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// if (app.Environment.IsDevelopment())
-// {
-
-// }
-
 app.UseHttpsRedirection();
-app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
+if (app.Environment.IsDevelopment())
+    app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+else
+{
+    app.UseCors(builder => builder
+        .WithOrigins(app.Configuration.GetSection(FrontendSettings.SectionName).Get<FrontendSettings>()?.BaseUrl ?? "")
+        .AllowAnyMethod()
+        .AllowAnyHeader());
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
