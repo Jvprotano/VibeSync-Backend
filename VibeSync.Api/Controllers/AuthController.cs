@@ -180,7 +180,7 @@ public sealed class AuthController : BaseController
         }
 
         var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-        // Map ApplicationUser to Domain.Domains.User for email sender
+
         var domainUser = user.AsUser();
         await _emailSender.SendPasswordResetEmailAsync(domainUser, resetToken);
         return Ok(new { message = "If the email is registered and confirmed, a password reset link will be sent." });
@@ -205,6 +205,8 @@ public sealed class AuthController : BaseController
         }
 
         var decodedToken = HttpUtility.UrlDecode(request.Token);
+
+        _logger.LogInformation("Attempting password reset for user: {Email}; Token {Token}", request.Email, request.Token);
 
         var result = await _userManager.ResetPasswordAsync(user, decodedToken, request.NewPassword);
         if (!result.Succeeded)

@@ -116,18 +116,31 @@ logger.LogInformation("App started at: " + DateTime.UtcNow);
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
-
 if (app.Environment.IsDevelopment())
-    app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-else
 {
     app.UseCors(builder => builder
-        .WithOrigins(app.Configuration.GetSection(FrontendSettings.SectionName).Get<FrontendSettings>()?.BaseUrl ?? "")
-        .AllowAnyMethod()
-        .AllowAnyHeader());
+        .AllowAnyOrigin()
+        .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        .WithHeaders("Authorization", "Content-Type")
+        .WithExposedHeaders("Content-Disposition"));
+}
+else
+{
+    var frontendUrl = app.Configuration.GetSection(FrontendSettings.SectionName)
+        .Get<FrontendSettings>()?.BaseUrl
+        ?? throw new InvalidOperationException("Frontend BaseUrl não configurado");
+
+    logger.LogInformation("Configurando CORS para origem: {FrontendUrl}", frontendUrl);
+
+    app.UseCors(builder => builder
+        .WithOrigins(frontendUrl)
+        .AllowCredentials()
+        .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        .WithHeaders("Authorization", "Content-Type", "Accept")
+        .WithExposedHeaders("Content-Disposition"));
 }
 
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -60,6 +60,8 @@ public class AuthEmailService : IEmailSender
         if (string.IsNullOrWhiteSpace(user.Email)) throw new ArgumentException("User email cannot be empty.", nameof(user.Email));
         if (string.IsNullOrWhiteSpace(token)) throw new ArgumentNullException(nameof(token));
 
+        _logger.LogInformation("Preparing to send password reset email to {Email}; {Token}", user.Email, token);
+
         var encodedToken = HttpUtility.UrlEncode(token);
         var resetLink = $"{_frontendSettings.BaseUrl}/reset-password?email={HttpUtility.UrlEncode(user.Email)}&token={encodedToken}";
 
