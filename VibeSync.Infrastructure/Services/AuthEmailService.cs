@@ -81,6 +81,26 @@ public class AuthEmailService : IEmailSender
         _logger.LogInformation("Password reset email sent successfully to {Email}", user.Email);
     }
 
+    public async Task SendNewUserNotificationAsync(User newUser)
+    {
+        if (newUser == null) throw new ArgumentNullException(nameof(newUser));
+
+        var emailSubject = "Novo Usuário Registrado no VibeSync";
+        var emailBody = $@"
+                Olá Administrador,<br/><br/>
+                Um novo usuário se registrou no VibeSync!<br/><br/>
+                Detalhes do usuário:<br/>
+                Nome: {(string.IsNullOrWhiteSpace(newUser.FullName) ? "Não informado" : newUser.FullName)}<br/>
+                E-mail: {newUser.Email}<br/>
+                ID: {newUser.Id}<br/>
+                Data de registro: {DateTime.UtcNow:dd/MM/yyyy HH:mm:ss} UTC<br/><br/>
+                Atenciosamente,<br/>
+                Sistema VibeSync";
+
+        await SendEmailAsync("jvprotano@gmail.com", emailSubject, emailBody);
+        _logger.LogInformation("New user notification email sent for user: {Email}", newUser.Email);
+    }
+
     public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
         var smtpClient = new SmtpClient(_config["Smtp:Host"])
