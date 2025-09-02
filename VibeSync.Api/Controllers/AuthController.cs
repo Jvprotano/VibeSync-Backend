@@ -96,7 +96,13 @@ public sealed class AuthController : BaseController
             }
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(userEntity);
-            await _emailSender.SendConfirmationEmailAsync(userEntity.AsUser(), token);
+            var userDomain = userEntity.AsUser();
+            
+            // Enviar e-mail de confirmação para o usuário
+            await _emailSender.SendConfirmationEmailAsync(userDomain, token);
+            
+            // Enviar notificação de novo usuário para o administrador
+            await _emailSender.SendNewUserNotificationAsync(userDomain);
 
             var response = new UserRegisteredResponse(userEntity.Id, userEntity.Email!, "Registration successful. Please check your email to confirm your account.");
 
